@@ -115,7 +115,7 @@ jobs:
           arch: x86_64
           target: google_apis
           disable-animations: true
-          script: bash apps/android-smoke.sh apk/smoke-test.apk android-smoke
+          script: bash apps/android-smoke.sh apk/smoke-test.apk android-smoke || { grep -q 'in dying proc com.google.android.gms' android-smoke/logcat.txt && echo 'Emulator Play services crashed and took the app down; retrying once' && sleep 30 && rm -rf android-smoke && bash apps/android-smoke.sh apk/smoke-test.apk android-smoke; }
       - uses: actions/upload-artifact@v5
         if: always()
         with: {name: android-smoke, path: android-smoke, retention-days: 7}
@@ -209,7 +209,7 @@ jobs:
           arch: x86_64
           target: google_apis
           disable-animations: true
-          script: bash apps/android-smoke.sh apk/smoke-test.apk android-smoke
+          script: bash apps/android-smoke.sh apk/smoke-test.apk android-smoke || { grep -q 'in dying proc com.google.android.gms' android-smoke/logcat.txt && echo 'Emulator Play services crashed and took the app down; retrying once' && sleep 30 && rm -rf android-smoke && bash apps/android-smoke.sh apk/smoke-test.apk android-smoke; }
       - uses: actions/upload-artifact@v5
         if: always()
         with: {name: verify-apk, path: android-smoke, retention-days: 7}
