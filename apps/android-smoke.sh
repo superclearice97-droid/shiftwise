@@ -10,6 +10,15 @@ adb logcat -c
 adb shell am start -W -n "$PKG/.MainActivity"
 sleep 30
 adb exec-out screencap -p > "$OUT/vault-screen.png"
+# Create a vault through the real form using the keyboard: passphrase (autofocused), age,
+# confirm, acknowledge checkbox, submit. Then capture the unlocked city view.
+key() { adb shell input keyevent "$1"; sleep 1; }
+adb shell input text "smoke%stest%spassphrase%sonly"; sleep 1; key 61
+adb shell input text "30"; sleep 1; key 61
+adb shell input text "smoke%stest%spassphrase%sonly"; sleep 1; key 61
+key 62; key 61; key 66
+sleep 40
+adb exec-out screencap -p > "$OUT/unlocked.png"
 adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1 && adb pull /sdcard/ui.xml "$OUT/ui.xml" >/dev/null 2>&1 || true
 adb logcat -d > "$OUT/logcat.txt" || true
 HERE=$(dirname "$0")

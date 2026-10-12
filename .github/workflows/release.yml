@@ -122,7 +122,8 @@ jobs:
 
   release:
     needs: [linux, android, android-smoke]
-    if: github.ref == 'refs/heads/main'
+    # main: everything must pass. Other branches: publish a private draft preview whenever the APK built.
+    if: ${{ always() && !github.event.inputs.verify_tag && needs.android.result == 'success' && (github.ref != 'refs/heads/main' || (needs.linux.result == 'success' && needs.android-smoke.result == 'success')) }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -139,6 +140,17 @@ jobs:
           set -euo pipefail
           VERSION=$(node -p 'JSON.parse(require("fs").readFileSync("package.json")).version')
           [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            # Branch build: private draft with packages and smoke-test screenshots for review.
+            PREVIEW="preview-${GITHUB_REF_NAME//\//-}"
+            gh release delete "$PREVIEW" --yes >/dev/null 2>&1 || true
+            mkdir -p preview
+            cp artifacts/linux/* artifacts/android/*.apk preview/ 2>/dev/null || true
+            shopt -s nullglob
+            for f in artifacts/android-smoke/*.png; do cp "$f" "preview/android-$(basename "$f")"; done
+            gh release create "$PREVIEW" --draft --target "$RELEASE_COMMIT" --title "CI preview ($GITHUB_REF_NAME)" --notes "Automated build for review. Not for distribution." preview/*
+            exit 0
+          fi
           TAG="v$VERSION"
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "Release $TAG already exists; preserving published assets."

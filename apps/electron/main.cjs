@@ -1,9 +1,9 @@
 // Shiftwise for Linux. Loads only the bundled app files from app://shiftwise/.
 // No remote content, no Node access in the page, no telemetry, no auto-update.
 'use strict';
-const {app, BrowserWindow, protocol, net, shell, session, Menu} = require('electron');
+const {app, BrowserWindow, protocol, shell, session, Menu} = require('electron');
 const path = require('node:path');
-const {pathToFileURL} = require('node:url');
+const fs = require('node:fs');
 
 const WWW = path.join(__dirname, '..', 'www');
 const ORIGIN = 'app://shiftwise';
@@ -13,14 +13,20 @@ protocol.registerSchemesAsPrivileged([{scheme: 'app', privileges: {standard: tru
 app.setName('Shiftwise');
 if (!SMOKE && !app.requestSingleInstanceLock()) app.quit();
 
+const TYPES = {html: 'text/html; charset=utf-8', js: 'text/javascript; charset=utf-8', css: 'text/css; charset=utf-8', ttf: 'font/ttf', png: 'image/png', txt: 'text/plain; charset=utf-8', json: 'application/json'};
+// Files are read straight from the app folder; file:// stays blocked for the page.
 function serve() {
-  protocol.handle('app', request => {
+  protocol.handle('app', async request => {
     const url = new URL(request.url);
     if (url.host !== 'shiftwise') return new Response('Not found', {status: 404});
     const rel = decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname);
     const file = path.normalize(path.join(WWW, rel));
-    if (!file.startsWith(WWW + path.sep)) return new Response('Not found', {status: 404});
-    return net.fetch(pathToFileURL(file).toString());
+    const type = TYPES[path.extname(file).slice(1)];
+    if (!file.startsWith(WWW + path.sep) || !type) return new Response('Not found', {status: 404});
+    try {
+      const body = await fs.promises.readFile(file);
+      return new Response(body, {headers: {'content-type': type, 'x-content-type-options': 'nosniff', 'cache-control': 'no-cache'}});
+    } catch { return new Response('Not found', {status: 404}); }
   });
 }
 
@@ -74,7 +80,7 @@ async function smokeTest() {
     const status = await run('document.querySelector("#syncBadge").textContent');
     if (!/on this device/.test(status)) throw Error('unexpected status ' + status);
     const image = await wc.capturePage();
-    require('node:fs').writeFileSync(SMOKE, image.toPNG());
+    fs.writeFileSync(SMOKE, image.toPNG());
     console.log('SMOKE OK', status);
     app.exit(0);
   } catch (e) { fail(e); }
