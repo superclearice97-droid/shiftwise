@@ -8,6 +8,7 @@ const fs = require('node:fs');
 const WWW = path.join(__dirname, '..', 'www');
 const ORIGIN = 'app://shiftwise';
 const SMOKE = process.env.SHIFTWISE_SMOKE_TEST; // CI only: path for a screenshot, then quit.
+if (SMOKE) app.disableHardwareAcceleration(); // CI has no GPU; avoids sporadic compositor errors under Xvfb.
 
 protocol.registerSchemesAsPrivileged([{scheme: 'app', privileges: {standard: true, secure: true, supportFetchAPI: true, stream: true}}]);
 app.setName('Shiftwise');
@@ -79,7 +80,8 @@ async function smokeTest() {
     await wait(3000);
     const status = await run('document.querySelector("#syncBadge").textContent');
     if (!/on this device/.test(status)) throw Error('unexpected status ' + status);
-    const image = await wc.capturePage();
+    let image;
+    for (let i = 0; i < 5; i++) { try { image = await wc.capturePage(); break; } catch (e) { if (i === 4) throw e; await wait(1500); } }
     fs.writeFileSync(SMOKE, image.toPNG());
     console.log('SMOKE OK', status);
     app.exit(0);
