@@ -1,28 +1,132 @@
-name: Official release
+name: Build apps and release
+# Builds and tests the web app, the Linux app and the Android app on every push to main.
+# Publishes a GitHub Release when package.json has a version that has not been released yet.
 on:
-  workflow_dispatch:
   push:
     branches: [main]
-    paths: [package.json, .github/workflows/release.yml]
+  workflow_dispatch:
+    inputs:
+      verify_tag:
+        description: Verify and install-test the Android APK already attached to this release tag (for example v0.2.0)
+        required: false
+        default: ''
 permissions:
   contents: read
 concurrency:
-  group: shiftwise-release
+  group: shiftwise-release-${{ github.event.inputs.verify_tag || 'build' }}
   cancel-in-progress: false
+
 jobs:
+  test:
+    if: ${{ !github.event.inputs.verify_tag }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22', cache: npm}
+      - run: npm ci
+      - run: npm test
+      - run: node apps/build-www.mjs
+      - uses: actions/upload-artifact@v4
+        with: {name: www, path: apps/www, retention-days: 7}
+      - uses: actions/upload-artifact@v4
+        with: {name: web-worker, path: dist, retention-days: 7}
+
+  linux:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: actions/download-artifact@v4
+        with: {name: www, path: apps/www}
+      - name: Packaging tools
+        run: sudo apt-get update && sudo apt-get install -y libarchive-tools xvfb
+      - name: Install packaging dependencies
+        working-directory: apps
+        run: npm install --no-audit --no-fund
+      - name: Build AppImage, zip, deb and pacman packages
+        working-directory: apps
+        run: npm run linux
+      - name: Smoke test the AppImage (create vault, unlock, screenshot)
+        working-directory: apps
+        run: |
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
+          APP=$(ls dist/*.AppImage)
+          chmod +x "$APP"
+          APPIMAGE_EXTRACT_AND_RUN=1 SHIFTWISE_SMOKE_TEST="$PWD/dist/linux-smoke.png" timeout 180 xvfb-run -a -s "-screen 0 1440x900x24" "$APP"
+          test -s dist/linux-smoke.png
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          retention-days: 7
+          path: |
+            apps/dist/*.AppImage
+            apps/dist/*.zip
+            apps/dist/*.deb
+            apps/dist/*.pacman
+            apps/dist/linux-smoke.png
+
+  android:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: {distribution: temurin, java-version: '21'}
+      - uses: actions/setup-node@v4
+        with: {node-version: '22'}
+      - uses: actions/download-artifact@v4
+        with: {name: www, path: apps/www}
+      - name: Install Capacitor
+        working-directory: apps
+        env: {ELECTRON_SKIP_BINARY_DOWNLOAD: '1'}
+        run: npm install --no-audit --no-fund
+      - name: Build APK
+        working-directory: apps
+        env:
+          ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: ./android-build.sh
+      - uses: actions/upload-artifact@v4
+        with: {name: android, path: apps/dist/*.apk, retention-days: 7}
+
+  android-smoke:
+    needs: android
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: {name: android, path: apk}
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+      - name: Install and launch on an Android 14 emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          script: bash apps/android-smoke.sh apk/smoke-test.apk android-smoke
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: android-smoke, path: android-smoke, retention-days: 7}
+
   release:
+    needs: [linux, android, android-smoke]
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-      - run: npm ci
-      - run: npm test
-      - name: Package and publish verified version
+      - uses: actions/download-artifact@v4
+        with: {path: artifacts}
+      - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_COMMIT: ${{ github.sha }}
@@ -33,15 +137,63 @@ jobs:
           [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
           TAG="v$VERSION"
           if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "Release already exists; preserving published assets."
+            echo "Release $TAG already exists; preserving published assets."
             exit 0
           fi
-          mkdir -p release/web/public release/web/.openai
+          mkdir -p release/web
           git archive --format=zip --prefix="shiftwise-$TAG/" -o "release/shiftwise-$TAG-source.zip" "$RELEASE_COMMIT"
-          cp -R dist release/web/
-          cp README.md SECURITY.md PRIVACY.md LEGAL-STATUS.md THIRD-PARTY-NOTICES.md RELEASE-NOTES.md release/web/
-          cp public/font-license.txt public/three-license.txt release/web/public/
-          cp .openai/hosting.json release/web/.openai/
+          cp -R artifacts/web-worker release/web/dist
+          cp README.md SECURITY.md PRIVACY.md LEGAL-STATUS.md THIRD-PARTY-NOTICES.md RELEASE-NOTES.md INSTALL.md public/font-license.txt release/web/
+          mkdir -p release/web/.openai && cp .openai/hosting.json release/web/.openai/
           (cd release/web && zip -qr "../shiftwise-$TAG-web-build.zip" .)
-          (cd release && sha256sum ./*.zip > SHA256SUMS.txt)
-          gh release create "$TAG" --target "$RELEASE_COMMIT" --title "Shiftwise $TAG" --notes-file RELEASE-NOTES.md "release/shiftwise-$TAG-source.zip" "release/shiftwise-$TAG-web-build.zip" release/SHA256SUMS.txt
+          cp artifacts/linux/*.AppImage artifacts/linux/*.zip artifacts/linux/*.deb artifacts/linux/*.pacman release/
+          DRAFT=()
+          if ls artifacts/android/Shiftwise-*-android.apk >/dev/null 2>&1; then
+            cp artifacts/android/Shiftwise-*-android.apk release/
+          else
+            # No signing key in repository secrets: hold the release as a private draft
+            # until the APK is signed and verified with the "verify_tag" run of this workflow.
+            cp artifacts/android/Shiftwise-*-android-unsigned.apk release/
+            DRAFT=(--draft)
+          fi
+          (cd release && sha256sum ./*.zip ./*.apk ./*.AppImage ./*.deb ./*.pacman > SHA256SUMS.txt)
+          rm -rf release/web
+          gh release create "$TAG" "${DRAFT[@]}" --target "$RELEASE_COMMIT" --title "Shiftwise $TAG" --notes-file RELEASE-NOTES.md release/*
+
+  verify-apk:
+    # Manual run: checks a release's APK with Google's apksigner and installs it on an emulator.
+    if: ${{ github.event.inputs.verify_tag }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # draft releases are visible only with push access
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download APK from release
+        env: {GH_TOKEN: '${{ github.token }}', TAG: '${{ github.event.inputs.verify_tag }}'}
+        run: |
+          mkdir -p apk
+          gh release download "$TAG" --pattern 'Shiftwise-*-android.apk' --dir apk
+          ls -la apk
+      - name: Verify signature, alignment and package
+        run: |
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          APK=$(ls apk/Shiftwise-*-android.apk)
+          "$BT/apksigner" verify --verbose --print-certs "$APK"
+          "$BT/zipalign" -c -p 4 "$APK"
+          "$BT/aapt2" dump badging "$APK" | head -12
+          cp "$APK" apk/smoke-test.apk
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+      - name: Install and launch on an Android 14 emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          script: bash apps/android-smoke.sh apk/smoke-test.apk android-smoke
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: {name: verify-apk, path: android-smoke, retention-days: 7}

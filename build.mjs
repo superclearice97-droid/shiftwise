@@ -1,5 +1,5 @@
 import {build} from 'esbuild';
-await build({entryPoints:['src/city-3d.js'],bundle:true,format:'iife',minify:true,outfile:'public/city-world.js',legalComments:'inline'});
+await build({entryPoints:['src/city-world.js'],bundle:true,format:'iife',minify:true,outfile:'public/city-world.js',legalComments:'inline'});
 import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 const assets={},types={html:'text/html; charset=utf-8',css:'text/css',js:'text/javascript',webmanifest:'application/manifest+json',jpg:'image/jpeg',png:'image/png',ttf:'font/ttf',txt:'text/plain; charset=utf-8'};

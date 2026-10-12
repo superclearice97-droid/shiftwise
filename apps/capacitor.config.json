@@ -1,0 +1,12 @@
+{
+  "appId": "io.github.superclearice97droid.shiftwise",
+  "appName": "Shiftwise",
+  "webDir": "www",
+  "backgroundColor": "#0f0f10",
+  "server": {"androidScheme": "https"},
+  "android": {
+    "allowMixedContent": false,
+    "webContentsDebuggingEnabled": false,
+    "backgroundColor": "#0f0f10"
+  }
+}

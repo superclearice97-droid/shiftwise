@@ -1,0 +1,43 @@
+{
+  "name": "shiftwise-apps",
+  "productName": "Shiftwise",
+  "version": "0.2.0",
+  "description": "Shiftwise: work, money and home records, encrypted on your device.",
+  "private": true,
+  "author": "Shiftwise",
+  "homepage": "https://github.com/superclearice97-droid/shiftwise",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "linux": "electron-builder --linux AppImage zip deb pacman --x64 --publish never"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@capacitor/android": "8.5.3",
+    "@capacitor/browser": "8.0.5",
+    "@capacitor/cli": "8.5.3",
+    "@capacitor/core": "8.5.3",
+    "@capacitor/filesystem": "8.1.4",
+    "@capacitor/share": "8.0.3",
+    "electron": "44.7.0",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "io.github.superclearice97droid.shiftwise",
+    "productName": "Shiftwise",
+    "executableName": "shiftwise",
+    "copyright": "Shiftwise",
+    "asar": false,
+    "directories": {"output": "dist", "buildResources": "linux"},
+    "files": ["electron/**", "www/**", "linux/icon.png", "package.json"],
+    "extraFiles": [{"from": "../THIRD-PARTY-NOTICES.md", "to": "THIRD-PARTY-NOTICES.md"}, {"from": "../PRIVACY.md", "to": "PRIVACY.md"}],
+    "artifactName": "Shiftwise-${version}-linux-${arch}.${ext}",
+    "linux": {
+      "icon": "linux/icon.png",
+      "category": "Office",
+      "synopsis": "Work, money and home records, encrypted on your device",
+      "maintainer": "Shiftwise <noreply@github.com>",
+      "vendor": "Shiftwise",
+      "desktop": {"entry": {"Name": "Shiftwise", "Comment": "Work, money and home records", "StartupWMClass": "Shiftwise"}}
+    }
+  }
+}

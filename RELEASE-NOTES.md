@@ -1,19 +1,32 @@
-# Shiftwise v0.1.0
+# Shiftwise v0.2.0
 
-First official versioned source and web-build release.
-
-Includes work and pay estimates, configurable weeks, encrypted vault and offline sync, savings goals and weekly grades, Restock, saved discount offers, daily expense receipts, an original 3D city, and bubble tab transitions.
+Shiftwise is now a downloadable app for **Android** and **Linux**, with a redesigned city background.
 
 ## Downloads
 
-- `shiftwise-v0.1.0-source.zip`: source code, tests, documentation, and bundled asset license notices.
-- `shiftwise-v0.1.0-web-build.zip`: compiled Cloudflare-compatible Worker plus documentation and license notices. Requires Sites authentication and D1 configuration as explained in README. This is not a standalone desktop executable or mobile installer.
-- `SHA256SUMS.txt`: package checksums.
+| Device | File | How to install |
+| --- | --- | --- |
+| Android 7 or newer | `Shiftwise-0.2.0-android.apk` | Open the file and tap Install |
+| Linux (any distro) | `Shiftwise-0.2.0-linux-x86_64.AppImage` | Allow it to run as a program, then double-click |
+| Arch, CachyOS, Manjaro | `Shiftwise-0.2.0-linux-x64.pacman` | `sudo pacman -U` the file |
+| Ubuntu, Debian, Mint | `Shiftwise-0.2.0-linux-amd64.deb` | Open with Software Install |
+| Linux, no install | `Shiftwise-0.2.0-linux-x64.zip` | Unzip and run `shiftwise` |
 
-The live app remains at https://shiftwise-work-money.superclearice97.chatgpt.site with its existing audience. This release does not migrate accounts, change hosting or add bank connections.
+Step-by-step instructions are in [INSTALL.md](https://github.com/superclearice97-droid/shiftwise/blob/main/INSTALL.md).
 
-## Verification and limits
+## What's new
 
-Build and all seven Node test files must pass before publication. Browser/device animation performance is not independently verified. Financial estimates require checking against actual statements; receipts only total entered expenses. Encryption does not hide all metadata or protect an already-compromised, unlocked device.
+- **Android and Linux apps.** They work fully offline, with no account or server. Records are encrypted with your vault passphrase and kept only on that device. Android cloud backup is turned off for the app. Export an encrypted backup from Pay settings to keep a copy.
+- **New background.** A monochrome isometric night city in line art: lit window grids, an elevated metro that stops at its station, a freight line, harbor cranes and ships, a turning Ferris wheel and street traffic, with a "Fig 1" clock in the corner. It's drawn with Canvas 2D, so it no longer needs WebGL or Three.js. Pause, reduced-motion, zoom and drag-to-pan still work.
+- **Live crypto prices are opt-in** in the apps. Only coin symbols are sent, straight to Coinbase's public price service.
+- New in-app **Privacy, licenses and limitations** page, plus bundled third-party notices.
 
-See PRIVACY.md, THIRD-PARTY-NOTICES.md, SECURITY.md and LEGAL-STATUS.md. This release is not a certification of legal compliance. No overall open-source license is granted for original Shiftwise code in this release.
+## Records don't move between the website and the apps
+
+The apps and the website keep separate records. To move records, export an encrypted backup in one and restore it in the other (Pay settings). Use the same vault passphrase in both.
+
+## Verification
+
+Every release runs the automated tests. The Linux AppImage is launched headlessly to create and unlock a vault. The Android APK is installed and launched on an Android 14 emulator, and its signature is checked with Google's `apksigner`. Physical-device performance isn't independently verified. Pay figures are estimates; check them against your pay stubs.
+
+Android signing certificate SHA-256: `0D:20:36:8B:51:9B:28:5C:87:47:D7:01:A2:8B:F8:A6:46:88:0D:A8:C3:57:B2:FA:B4:D6:0C:CE:0A:DB:4F:60`
