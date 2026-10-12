@@ -12,7 +12,11 @@ sleep 30
 adb exec-out screencap -p > "$OUT/vault-screen.png"
 adb shell uiautomator dump /sdcard/ui.xml >/dev/null 2>&1 && adb pull /sdcard/ui.xml "$OUT/ui.xml" >/dev/null 2>&1 || true
 adb logcat -d > "$OUT/logcat.txt" || true
-adb shell pidof "$PKG" || { echo "Shiftwise is not running"; exit 1; }
-if grep -E "Capacitor/Console.*(Uncaught|ERROR)|FATAL EXCEPTION" "$OUT/logcat.txt"; then echo "Errors in log"; exit 1; fi
-grep -qi "vault passphrase" "$OUT/ui.xml" && echo "Vault screen text found" || echo "::warning::vault text not found in accessibility dump (see screenshot)"
+HERE=$(dirname "$0")
+fail() { echo "$1" >> "$OUT/logcat.txt"; grep -E "Capacitor|chromium|AndroidRuntime|$PKG" "$OUT/logcat.txt" | tail -60 > "$OUT/fail.txt"; echo "$1" >> "$OUT/fail.txt"; "$HERE/annotate.sh" error "Android smoke" "$OUT/fail.txt"; exit 1; }
+adb shell pidof "$PKG" || fail "Shiftwise is not running"
+if grep -E "Capacitor/Console.*(Uncaught|ERROR)|FATAL EXCEPTION" "$OUT/logcat.txt"; then fail "Errors in log"; fi
+grep -o 'text="[^"]\{3,80\}"' "$OUT/ui.xml" 2>/dev/null | head -25 > "$OUT/texts.txt" || true
+grep -E "Capacitor|$PKG" "$OUT/logcat.txt" | grep -viE "verbose" | tail -15 >> "$OUT/texts.txt" || true
+if grep -qi "passphrase" "$OUT/ui.xml"; then "$HERE/annotate.sh" notice "Android smoke passed: vault screen shown" "$OUT/texts.txt"; else "$HERE/annotate.sh" warning "Android smoke: app running, vault text not in accessibility dump" "$OUT/texts.txt"; fi
 echo "Android smoke test passed"

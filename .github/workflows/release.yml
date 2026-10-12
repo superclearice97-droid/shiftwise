@@ -21,25 +21,25 @@ jobs:
     if: ${{ !github.event.inputs.verify_tag }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with: {node-version: '22', cache: npm}
       - run: npm ci
       - run: npm test
       - run: node apps/build-www.mjs
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with: {name: www, path: apps/www, retention-days: 7}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with: {name: web-worker, path: dist, retention-days: 7}
 
   linux:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with: {node-version: '22'}
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with: {name: www, path: apps/www}
       - name: Packaging tools
         run: sudo apt-get update && sudo apt-get install -y libarchive-tools xvfb
@@ -55,9 +55,13 @@ jobs:
           sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0 || true
           APP=$(ls dist/*.AppImage)
           chmod +x "$APP"
-          APPIMAGE_EXTRACT_AND_RUN=1 SHIFTWISE_SMOKE_TEST="$PWD/dist/linux-smoke.png" timeout 180 xvfb-run -a -s "-screen 0 1440x900x24" "$APP"
-          test -s dist/linux-smoke.png
-      - uses: actions/upload-artifact@v4
+          set +e
+          APPIMAGE_EXTRACT_AND_RUN=1 SHIFTWISE_SMOKE_TEST="$PWD/dist/linux-smoke.png" timeout 180 xvfb-run -a -s "-screen 0 1440x900x24" "$APP" > smoke.log 2>&1
+          code=$?
+          ls -la dist >> smoke.log
+          if [ $code -ne 0 ] || [ ! -s dist/linux-smoke.png ]; then ./annotate.sh error "Linux smoke (exit $code)" smoke.log; exit 1; fi
+          grep -E 'SMOKE' smoke.log > smoke-ok.log; ./annotate.sh notice "Linux smoke passed" smoke-ok.log
+      - uses: actions/upload-artifact@v5
         with:
           name: linux
           retention-days: 7
@@ -72,12 +76,12 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
         with: {distribution: temurin, java-version: '21'}
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with: {node-version: '22'}
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with: {name: www, path: apps/www}
       - name: Install Capacitor
         working-directory: apps
@@ -90,15 +94,15 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: ./android-build.sh
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with: {name: android, path: apps/dist/*.apk, retention-days: 7}
 
   android-smoke:
     needs: android
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v5
         with: {name: android, path: apk}
       - name: Enable KVM
         run: |
@@ -112,7 +116,7 @@ jobs:
           target: google_apis
           disable-animations: true
           script: bash apps/android-smoke.sh apk/smoke-test.apk android-smoke
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         if: always()
         with: {name: android-smoke, path: android-smoke, retention-days: 7}
 
@@ -123,8 +127,8 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v5
         with: {path: artifacts}
       - name: Publish release
         env:
@@ -167,7 +171,7 @@ jobs:
     permissions:
       contents: write  # draft releases are visible only with push access
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Download APK from release
         env: {GH_TOKEN: '${{ github.token }}', TAG: '${{ github.event.inputs.verify_tag }}'}
         run: |
@@ -194,6 +198,6 @@ jobs:
           target: google_apis
           disable-animations: true
           script: bash apps/android-smoke.sh apk/smoke-test.apk android-smoke
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         if: always()
         with: {name: verify-apk, path: android-smoke, retention-days: 7}
