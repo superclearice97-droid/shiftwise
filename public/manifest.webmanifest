@@ -1,0 +1,41 @@
+{
+  "id": "/",
+  "name": "Shiftwise \u2014 Money & Home",
+  "short_name": "Shiftwise",
+  "description": "Work, money, household restocking, savings and deals in one encrypted app.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f5f7f4",
+  "theme_color": "#125e47",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Restock",
+      "url": "/?tab=restock"
+    },
+    {
+      "name": "Discounts",
+      "url": "/?tab=discounts"
+    }
+  ]
+}

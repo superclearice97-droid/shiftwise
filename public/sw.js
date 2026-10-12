@@ -1,0 +1,8 @@
+const CACHE='__SHELL_VERSION__';
+const SHELL=['/','/index.html','/city.css','/city.js','/city-world.js','/city-fallback.js','/city-night.jpg','/style.css','/shiftwise-sans.ttf','/shiftwise-sans-bold.ttf','/font-license.txt','/core.js','/storage.js','/crypto.js','/vault.js','/app.js','/features.js','/investments.js','/discounts.js','/offers.js','/experience.js','/receipts.js','/restock.js','/install.html','/install.js','/sync.js','/manifest.webmanifest','/icon-192.png','/icon-512.png','/icon-maskable.png'];
+self.addEventListener('install',event=>event.waitUntil((async()=>{const cache=await caches.open(CACHE);for(const path of SHELL){const r=await fetch(new Request(path,{cache:'reload',credentials:'same-origin'}));if(!r.ok||r.redirected)throw Error('Sign in and reconnect to prepare offline');if((path==='/'||path==='/index.html')&&!(await r.clone().text()).includes('id="saveStatus"'))throw Error('Not the app shell');await cache.put(path,r)}if(!self.registration.active)await self.skipWaiting()})()));
+self.addEventListener('activate',event=>event.waitUntil((async()=>{for(const key of await caches.keys())if(key.startsWith('shiftwise-shell-')&&key!==CACHE)await caches.delete(key);await self.clients.claim()})()));
+self.addEventListener('message',e=>{if(e.data?.type==='ACTIVATE')self.skipWaiting()});
+self.addEventListener('fetch',event=>{const url=new URL(event.request.url);if(url.origin!==self.location.origin||event.request.method!=='GET'||url.searchParams.has('reauth')||url.pathname.startsWith('/api/')||!SHELL.includes(url.pathname))return;
+ event.respondWith((async()=>{const cache=await caches.open(CACHE);const cached=await cache.match(url.pathname);if(cached)return cached;return fetch(event.request)})());
+});

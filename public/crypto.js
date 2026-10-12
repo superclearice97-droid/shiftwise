@@ -1,0 +1,13 @@
+/* Versioned authenticated encryption using the browser's Web Crypto implementation. */
+(function(root){
+ const format='shiftwise-e2ee',iterations=600000,encoder=new TextEncoder(),decoder=new TextDecoder();
+ const b64=bytes=>{let s='';for(const b of bytes)s+=String.fromCharCode(b);return btoa(s)};
+ const bytes=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+ function valid(p){return !!p&&p.format===format&&p.v===1&&p.cipher==='AES-256-GCM'&&p.kdf?.name==='PBKDF2-SHA256'&&p.kdf.iterations===iterations&&typeof p.owner==='string'&&p.owner.length>0&&p.owner.length<200&&['account','device','backup'].includes(p.purpose)&&typeof p.kdf.salt==='string'&&/^[A-Za-z0-9+/]{43}=$/.test(p.kdf.salt)&&typeof p.iv==='string'&&/^[A-Za-z0-9+/]{16}$/.test(p.iv)&&typeof p.ciphertext==='string'&&p.ciphertext.length>=24&&p.ciphertext.length<=8000000&&p.ciphertext.length%4===0&&/^[A-Za-z0-9+/]+={0,2}$/.test(p.ciphertext)}
+ const aad=p=>encoder.encode(JSON.stringify([format,1,p.owner,p.purpose,p.cipher,p.kdf.name,p.kdf.iterations,p.kdf.salt]));
+ async function derive(passphrase,salt){if(typeof passphrase!=='string'||!passphrase.length)throw Error('Enter your vault passphrase.');const material=await crypto.subtle.importKey('raw',encoder.encode(passphrase),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt:bytes(salt),iterations,hash:'SHA-256'},material,{name:'AES-GCM',length:256},false,['encrypt','decrypt'])}
+ async function encrypt(value,key,salt,owner,purpose){if(!key)throw Error('Unlock your vault before saving.');const p={format,v:1,owner,purpose,cipher:'AES-256-GCM',kdf:{name:'PBKDF2-SHA256',iterations,salt},iv:b64(crypto.getRandomValues(new Uint8Array(12)))};const encoded=encoder.encode(JSON.stringify(value));try{p.ciphertext=b64(new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv:bytes(p.iv),additionalData:aad(p),tagLength:128},key,encoded)));return p}finally{encoded.fill(0)}}
+ async function decrypt(p,key,owner,purpose){if(!valid(p)||p.owner!==owner||p.purpose!==purpose)throw Error('This encrypted file does not match this account or record type.');let plain;try{plain=new Uint8Array(await crypto.subtle.decrypt({name:'AES-GCM',iv:bytes(p.iv),additionalData:aad(p),tagLength:128},key,bytes(p.ciphertext)));return JSON.parse(decoder.decode(plain))}catch(e){throw Error('Could not unlock these records. Check your passphrase; modified or damaged records cannot be opened.')}finally{plain?.fill(0)}}
+ root.VaultCrypto={valid,derive,encrypt,decrypt,newSalt:()=>b64(crypto.getRandomValues(new Uint8Array(32)))};
+})(globalThis);
+let vaultKey=null,vaultSalt=null;

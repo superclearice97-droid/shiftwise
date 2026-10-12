@@ -1,0 +1,4 @@
+import vm from 'node:vm';import fs from 'node:fs';import assert from 'node:assert/strict';
+const env={document:{addEventListener(){}}};vm.runInNewContext(fs.readFileSync('public/receipts.js','utf8'),env);
+const entries=[{date:'2026-10-11',amount:.1,category:'Groceries'},{date:'2026-10-11',amount:.2,category:'Groceries'},{date:'2026-10-11',amount:20,category:'Shopping'},{date:'2026-10-12',amount:80,category:'Housing & bills'},{date:'2026-10-18',amount:500,category:'Other'}];
+const r=env.receiptSummary(entries,'2026-10-11',100,'2026-10-11','2026-10-18');assert.equal(r.total,2030);assert.equal(r.weekSpent,10030);assert.equal(r.flexible,2000);assert.equal(r.groups.Groceries,30);assert.equal(r.items.length,3);assert.equal(r.budget,10000);assert.equal(env.receiptSummary(entries,'2026-10-13',100,'2026-10-11','2026-10-18').total,0);console.log('PASS: daily totals use cents, workweek bounds, category grouping, scenario base, empty date.');
