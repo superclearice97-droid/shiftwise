@@ -1,6 +1,6 @@
 # Shiftwise privacy and data notice
 
-Version 0.2.0 — October 12, 2026. This describes the current app code and known hosting dependencies, not an independently audited assurance. It covers the hosted website and the downloadable Android and Linux apps; the differences are described under “Downloadable apps”.
+Version 0.2.1 — October 12, 2026. This describes the current app code and known hosting dependencies, not an independently audited assurance. It covers the hosted website and the downloadable Android and Linux apps; the differences are described under “Downloadable apps”.
 
 ## What you enter
 

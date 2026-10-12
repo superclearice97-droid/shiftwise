@@ -1,6 +1,6 @@
 name: Build apps and release
 # Temporary branch workflow: verifies the APK signed with the owner's release key outside CI,
-# confirms it is the CI-built v0.2.0 APK, install-tests it, then publishes the v0.2.0 release.
+# confirms it is the CI-built v0.2.1 APK, install-tests it, then publishes the v0.2.1 release.
 on:
   workflow_dispatch:
 permissions:
@@ -12,8 +12,8 @@ jobs:
       contents: write
     env:
       GH_TOKEN: ${{ github.token }}
-      TAG: v0.2.0
-      APK: signed/Shiftwise-0.2.0-android.apk
+      TAG: v0.2.1
+      APK: signed/Shiftwise-0.2.1-android.apk
       CERT: 0D:20:36:8B:51:9B:28:5C:87:47:D7:01:A2:8B:F8:A6:46:88:0D:A8:C3:57:B2:FA:B4:D6:0C:CE:0A:DB:4F:60
     steps:
       - uses: actions/checkout@v5
@@ -27,7 +27,7 @@ jobs:
           echo "cert $GOT"; [ "$GOT" = "$CERT" ]
           "$BT/zipalign" -c -p 4 "$APK"
           "$BT/aapt2" dump badging "$APK" | head -3 | tee badging.txt
-          grep -q "versionName='0.2.0'" badging.txt
+          grep -q "versionName='0.2.1'" badging.txt
       - name: Confirm it is the CI-built APK (same entries and CRCs as the draft's unsigned APK)
         run: |
           set -euo pipefail
@@ -57,11 +57,11 @@ jobs:
           mkdir -p sums && cd sums
           gh release download "$TAG" --pattern 'SHA256SUMS.txt'
           grep -v android-unsigned SHA256SUMS.txt > s.tmp
-          (cd .. && sha256sum "./signed/Shiftwise-0.2.0-android.apk" | sed 's#./signed/#./#') >> s.tmp
+          (cd .. && sha256sum "./signed/Shiftwise-0.2.1-android.apk" | sed 's#./signed/#./#') >> s.tmp
           mv s.tmp SHA256SUMS.txt && cat SHA256SUMS.txt
           cd ..
-          gh release delete-asset "$TAG" Shiftwise-0.2.0-android-unsigned.apk --yes
+          gh release delete-asset "$TAG" Shiftwise-0.2.1-android-unsigned.apk --yes
           gh release upload "$TAG" "$APK" sums/SHA256SUMS.txt --clobber
           gh release edit "$TAG" --draft=false --latest
-          gh release delete preview-apps-v0.2.0 --yes || true
+          gh release delete preview-apps-v0.2.1 --yes || true
           gh release view "$TAG" --json isDraft,assets --jq '{draft: .isDraft, assets: [.assets[].name]}'

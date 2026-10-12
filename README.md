@@ -1,6 +1,6 @@
 # Shiftwise
 
-Official release: **v0.2.0**. See [release notes](RELEASE-NOTES.md), [install guide](INSTALL.md), [privacy notice](PRIVACY.md), [third-party notices](THIRD-PARTY-NOTICES.md), and [remaining legal setup](LEGAL-STATUS.md).
+Official release: **v0.2.1**. See [release notes](RELEASE-NOTES.md), [install guide](INSTALL.md), [privacy notice](PRIVACY.md), [third-party notices](THIRD-PARTY-NOTICES.md), and [remaining legal setup](LEGAL-STATUS.md).
 
 ## Download the app
 
