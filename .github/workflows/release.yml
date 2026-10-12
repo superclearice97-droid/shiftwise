@@ -1,0 +1,47 @@
+name: Official release
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [package.json, .github/workflows/release.yml]
+permissions:
+  contents: read
+concurrency:
+  group: shiftwise-release
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - name: Package and publish verified version
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_COMMIT: ${{ github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(node -p 'JSON.parse(require("fs").readFileSync("package.json")).version')
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          TAG="v$VERSION"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release already exists; preserving published assets."
+            exit 0
+          fi
+          mkdir -p release/web/public release/web/.openai
+          git archive --format=zip --prefix="shiftwise-$TAG/" -o "release/shiftwise-$TAG-source.zip" "$RELEASE_COMMIT"
+          cp -R dist release/web/
+          cp README.md SECURITY.md PRIVACY.md LEGAL-STATUS.md THIRD-PARTY-NOTICES.md RELEASE-NOTES.md release/web/
+          cp public/font-license.txt public/three-license.txt release/web/public/
+          cp .openai/hosting.json release/web/.openai/
+          (cd release/web && zip -qr "../shiftwise-$TAG-web-build.zip" .)
+          (cd release && sha256sum ./*.zip > SHA256SUMS.txt)
+          gh release create "$TAG" --target "$RELEASE_COMMIT" --title "Shiftwise $TAG" --notes-file RELEASE-NOTES.md "release/shiftwise-$TAG-source.zip" "release/shiftwise-$TAG-web-build.zip" release/SHA256SUMS.txt

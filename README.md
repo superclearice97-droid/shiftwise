@@ -1,5 +1,7 @@
 # Shiftwise
 
+Official release: **v0.1.0**. See [release notes](RELEASE-NOTES.md), [privacy notice](PRIVACY.md), [third-party notices](THIRD-PARTY-NOTICES.md), and [remaining legal setup](LEGAL-STATUS.md).
+
 Work, money, goals, daily spending receipts, and household supplies in one installable web app. This is the source snapshot of the existing Shiftwise app, imported from its Sites project on October 12, 2026.
 
 Live app: https://shiftwise-work-money.superclearice97.chatgpt.site
