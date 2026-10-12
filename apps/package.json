@@ -1,7 +1,7 @@
 {
   "name": "shiftwise-apps",
   "productName": "Shiftwise",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Shiftwise: work, money and home records, encrypted on your device.",
   "private": true,
   "author": "Shiftwise",

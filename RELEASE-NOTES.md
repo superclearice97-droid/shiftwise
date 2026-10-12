@@ -1,20 +1,24 @@
-# Shiftwise v0.2.0
+# Shiftwise v0.2.1
 
-Shiftwise is now a downloadable app for **Android** and **Linux**, with a redesigned city background.
+Shiftwise is a downloadable app for **Android** and **Linux**, with a redesigned city background and a new pop-up inspector for your numbers.
 
 ## Downloads
 
 | Device | File | How to install |
 | --- | --- | --- |
-| Android 7 or newer | `Shiftwise-0.2.0-android.apk` | Open the file and tap Install |
-| Linux (any distro) | `Shiftwise-0.2.0-linux-x86_64.AppImage` | Allow it to run as a program, then double-click |
-| Arch, CachyOS, Manjaro | `Shiftwise-0.2.0-linux-x64.pacman` | `sudo pacman -U` the file |
-| Ubuntu, Debian, Mint | `Shiftwise-0.2.0-linux-amd64.deb` | Open with Software Install |
-| Linux, no install | `Shiftwise-0.2.0-linux-x64.zip` | Unzip and run `shiftwise` |
+| Android 7 or newer | `Shiftwise-0.2.1-android.apk` | Open the file and tap Install |
+| Linux (any distro) | `Shiftwise-0.2.1-linux-x86_64.AppImage` | Allow it to run as a program, then double-click |
+| Arch, CachyOS, Manjaro | `Shiftwise-0.2.1-linux-x64.pacman` | `sudo pacman -U` the file |
+| Ubuntu, Debian, Mint | `Shiftwise-0.2.1-linux-amd64.deb` | Open with Software Install |
+| Linux, no install | `Shiftwise-0.2.1-linux-x64.zip` | Unzip and run `shiftwise` |
 
 Step-by-step instructions are in [INSTALL.md](https://github.com/superclearice97-droid/shiftwise/blob/main/INSTALL.md).
 
-## What's new
+## What's new in 0.2.1
+
+- **Pop-up inspector for your finances.** The panel on the right now works like a map inspector: a label, one big figure, a status pill, a progress bar, right-aligned rows and an outlined action button. It follows the section you open. Work log shows hours, overtime, estimated take-home and taxes. Money shows spending against your budget with your top categories. Investments shows total value and gain or loss. Goals shows each goal's progress. Restock shows what's due. You can still pick a view by hand. Every number is calculated on your device from your own records, and nothing is sent anywhere.
+
+## Since 0.2.0
 
 - **Android and Linux apps.** They work fully offline, with no account or server. Records are encrypted with your vault passphrase and kept only on that device. Android cloud backup is turned off for the app. Export an encrypted backup from Pay settings to keep a copy.
 - **New background.** A dark isometric night city in thin grey line art, modelled on a technical-drawing look: low-rise blocks with dot-grid windows, glass towers, palm-lined boulevards, forests, a marina with a breakwater and buoys, and a container port with cranes. The elevated metro calls at Northgate and Central, leaves the city, crosses a gorge on a truss bridge and pulls into the farming village of Millbrook (fields, barns, silos and a windmill), then heads back. Drag in Focus view to follow it. A "Fig 1" clock sits in the corner. It's drawn with Canvas 2D, so no WebGL or Three.js is needed. Pause, reduced-motion, zoom and drag-to-pan still work.

@@ -40,3 +40,32 @@ body>aside nav button,.city-panel .eyebrow,.inspector-select,.city-panel h2,.cit
 @media(max-width:760px){.city-frame{inset:6px;border-radius:10px}.city-clock{left:14px;bottom:14px;font-size:11px}.city-focus .city-clock{top:auto;bottom:52px}}
 /* Phones: keep the vault form clear while locked (the control panel only offers background controls then). */
 @media(max-width:760px){.vault-locked .city-panel,.vault-locked #cityMenuToggle{display:none!important}}
+
+/* Inspector pop-up: label, big figure, status pill, meter, right-aligned rows and an outlined action. */
+.city-panel{top:76px;background:#111215f4;border:1px solid #28292d;border-radius:12px;padding:18px 18px 16px;box-shadow:0 18px 60px #0008;max-height:calc(100dvh - 96px)}
+@media(min-width:1101px){.city-panel{width:292px;right:18px}}
+.city-panel .panel-head{margin-bottom:12px}
+.city-panel .eyebrow{font:11px/1.4 'Shiftwise Mono',ui-monospace,monospace;letter-spacing:.14em;color:#8e8f94;text-transform:uppercase}
+.city-panel h2{font:500 26px/1.1 'Shiftwise Mono',ui-monospace,monospace;letter-spacing:.02em;margin:0 0 13px;color:#f4f4f2;overflow-wrap:anywhere}
+.city-panel .pill{display:inline-block;border:1px solid #303136;border-radius:999px;padding:6px 14px;font:12px/1.2 'Shiftwise Mono',ui-monospace,monospace;background:transparent;color:#e6e6e3}
+.city-panel .meter-caption{font:11px/1.4 'Shiftwise Mono',ui-monospace,monospace;letter-spacing:.12em;color:#8e8f94;margin:15px 0 8px}
+.city-panel .meter{height:3px;background:#232428;border-radius:2px;overflow:hidden}
+.city-panel .meter i{display:block;height:100%;background:#f1f1ee;border-radius:2px;transition:width .5s ease-out}
+.city-panel dl{margin:12px 0 2px}
+.city-panel dl>div{gap:16px;padding:11px 0;border-bottom:1px solid #ffffff12;font:13px/1.35 'Shiftwise Mono',ui-monospace,monospace}
+.city-panel dt{color:#8f9095;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.city-panel dd{color:#ededeb;flex-shrink:0;max-width:62%;overflow-wrap:anywhere}
+.city-panel .panel-actions{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px}
+.city-panel .panel-action{width:auto;padding:9px 15px;border:1px solid #e2e2df;border-radius:8px;background:transparent;color:#f4f4f2;font:11px/1 'Shiftwise Mono',ui-monospace,monospace;letter-spacing:.14em;text-transform:uppercase}
+.city-panel .panel-action:hover{background:#ffffff14}
+.city-panel .panel-caption{font:11px/1.55 'Shiftwise Mono',ui-monospace,monospace;color:#85868b;margin:10px 0 0}
+.city-panel .panel-divider{border-top-color:#232428;margin:16px 0 14px}
+.city-panel .inspector-select{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#8e8f94;margin-bottom:14px}
+.city-panel .inspector-select select{margin-top:7px;border-radius:8px;font-size:13px;letter-spacing:0;text-transform:none}
+.city-panel .scene-controls button{font:11px/1 'Shiftwise Mono',ui-monospace,monospace;letter-spacing:.08em;padding:8px 11px;border-radius:8px;border:1px solid #303136;background:transparent;color:#e6e6e3}
+.vault-locked .city-panel .inspector-select{display:none}
+@media(prefers-reduced-motion:no-preference){.city-panel:not([hidden]){animation:inspector-pop .3s cubic-bezier(.2,.8,.2,1)}@keyframes inspector-pop{from{opacity:0;transform:translateX(18px) scale(.985)}to{opacity:1;transform:none}}#citySummary.swap{animation:inspector-swap .24s ease-out}@keyframes inspector-swap{from{opacity:.15;transform:translateY(5px)}to{opacity:1;transform:none}}}
+html[data-motion=reduced] .city-panel,html[data-motion=reduced] #citySummary{animation:none!important}
+
+.city-panel .meter-caption{letter-spacing:.06em}.city-panel .inspector-select{margin:0 0 16px}
+.city-panel .panel-head .eyebrow{letter-spacing:.08em;font-size:10.5px}
