@@ -17,7 +17,8 @@ Step-by-step instructions are in [INSTALL.md](https://github.com/superclearice97
 ## What's new
 
 - **Android and Linux apps.** They work fully offline, with no account or server. Records are encrypted with your vault passphrase and kept only on that device. Android cloud backup is turned off for the app. Export an encrypted backup from Pay settings to keep a copy.
-- **New background.** A monochrome isometric night city in line art: lit window grids, an elevated metro that stops at its station, a freight line, harbor cranes and ships, a turning Ferris wheel and street traffic, with a "Fig 1" clock in the corner. It's drawn with Canvas 2D, so it no longer needs WebGL or Three.js. Pause, reduced-motion, zoom and drag-to-pan still work.
+- **New background.** A dark isometric night city in thin grey line art, modelled on a technical-drawing look: low-rise blocks with dot-grid windows, glass towers, palm-lined boulevards, forests, a marina with a breakwater and buoys, and a container port with cranes. The elevated metro calls at Northgate and Central, leaves the city, crosses a gorge on a truss bridge and pulls into the farming village of Millbrook (fields, barns, silos and a windmill), then heads back. Drag in Focus view to follow it. A "Fig 1" clock sits in the corner. It's drawn with Canvas 2D, so no WebGL or Three.js is needed. Pause, reduced-motion, zoom and drag-to-pan still work.
+- **Phones:** the background control panel no longer covers the vault passphrase form.
 - **Live crypto prices are opt-in** in the apps. Only coin symbols are sent, straight to Coinbase's public price service.
 - New in-app **Privacy, licenses and limitations** page, plus bundled third-party notices.
 

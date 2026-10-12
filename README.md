@@ -24,7 +24,7 @@ The live app's access policy is separate from this repository. A public reposito
 - Savings goals and weekly report cards.
 - Restock countdowns and shopping lists; saved deals, coupons, rebates and cashback tracking.
 - Investment tracking and limited crypto quotes. No connected bank or payroll feeds.
-- Original Canvas 2D isometric night city: line-art buildings, an elevated metro with station stops, freight, harbor, Ferris wheel and traffic. Also bubble tab transitions, themes, and pause/reduced-motion controls.
+- Original Canvas 2D isometric night city in grey line art: low-rise blocks, glass towers, palms, forests, marina and port. An elevated metro runs from the city across a gorge bridge to a farming village. Also bubble tab transitions, themes, and pause/reduced-motion controls.
 - AES-GCM vault encryption, encrypted device storage, encrypted backups and offline synchronization.
 
 Pay figures are estimates, not payroll or tax-return calculations. Daily receipts include manually logged expenses only. Savings suggestions are category-based rules, not verified alternative prices or AI analysis.

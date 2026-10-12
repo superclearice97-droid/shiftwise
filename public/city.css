@@ -38,3 +38,5 @@ body>aside nav button,.city-panel .eyebrow,.inspector-select,.city-panel h2,.cit
 .city-focus .city-clock{bottom:auto;top:76px}
 .vault-locked .city-clock{display:none}
 @media(max-width:760px){.city-frame{inset:6px;border-radius:10px}.city-clock{left:14px;bottom:14px;font-size:11px}.city-focus .city-clock{top:auto;bottom:52px}}
+/* Phones: keep the vault form clear while locked (the control panel only offers background controls then). */
+@media(max-width:760px){.vault-locked .city-panel,.vault-locked #cityMenuToggle{display:none!important}}
