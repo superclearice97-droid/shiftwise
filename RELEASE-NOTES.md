@@ -1,3 +1,16 @@
+# Shiftwise v0.3.0 — connected discounts
+
+- Connect Kroger location-specific product prices with an authorized token, or another local store through a documented JSON API adapter.
+- Search desired items and monitor up to 10 exact products/package sizes with target-price alerts and source-tagged price history.
+- Optional refresh every 15 minutes while visible and unlocked, after a first manual check. No closed-app polling or push notifications.
+- Compare current observations through OpenAI-compatible APIs; Linux can also use Ollama on a local/LAN address. Android requires HTTPS for local servers.
+- API credentials/configuration and observations stay in the encrypted vault at rest. Each AI question requires confirmation; pay, expenses and balances are excluded.
+- Setup: **Discounts → Connected deals → Connect store API**, then **AI & refresh settings**. See [API-CONNECTIONS.md](API-CONNECTIONS.md).
+
+This source update is prepared for the existing Android/Linux release workflow. Real provider access still requires your authorized credentials; compatibility tests use simulated responses. The hosted website requires a separate deployment and custom-host allowlisting. Store website URLs alone are not APIs, and other retailer integrations need an adapter.
+
+---
+
 # Shiftwise v0.2.1
 
 Shiftwise is a downloadable app for **Android** and **Linux**, with a redesigned city background and a new pop-up inspector for your numbers.

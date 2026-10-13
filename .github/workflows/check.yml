@@ -1,0 +1,17 @@
+name: Check proposed update
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with: {node-version: '22', cache: npm}
+      - run: npm ci
+      - run: npm test
+      - run: node apps/build-www.mjs
+      - run: node --check apps/electron/main.cjs
