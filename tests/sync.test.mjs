@@ -16,7 +16,7 @@ function makeDevice(){
  sandbox.fetch=async (_url,options={})=>{if(!navigator.onLine)throw Error('offline');if(options.method==='PUT'){state.puts++;if(state.failPut)throw Error('temporarily unavailable');const body=JSON.parse(options.body);assert.equal(body.data.format,'shiftwise-e2ee');assert(!JSON.stringify(body).includes('Private lunch'));if(body.version!==state.version)return response({error:'conflict'},409);state.payload=copy(body.data);state.version++;return response({version:state.version,userId:state.user})}state.gets++;return response({data:copy(state.payload),version:state.version,userId:state.user})};
  function response(value,status=200){return {ok:status===200,status,redirected:false,headers:{get:()=> 'application/json'},json:async()=>copy(value)}}
  vm.createContext(sandbox);
- for(const file of ['core.js','crypto.js','storage.js','app.js','features.js','investments.js','discounts.js','offers.js','sync.js','experience.js','restock.js'])vm.runInContext(fs.readFileSync('public/'+file,'utf8'),sandbox);
+ for(const file of ['deal-api.js','core.js','crypto.js','storage.js','app.js','features.js','investments.js','discounts.js','offers.js','sync.js','experience.js','restock.js','connections.js'])vm.runInContext(fs.readFileSync('public/'+file,'utf8'),sandbox);
  vm.runInContext(fs.readFileSync('public/city.js','utf8').replace('initCity();',''),sandbox);
  vm.runInContext(fs.readFileSync('public/vault.js','utf8').replace('bootWithLock();',''),sandbox);
  vm.runInContext('LocalRecords.rawGet=testDiskGet;LocalRecords.rawPut=testDiskPut;',sandbox);
@@ -65,7 +65,7 @@ planning.run("data.dealPrices.push({id:'older',itemId:'watch',price:75,at:'2026-
 assert.equal(planning.run('dealStatus(data.dealItems[0]).low'),false);
 assert.equal(planning.run('dealStatus(data.dealItems[0]).latest.price'),80);
 planning.run('data.dealItems[0].alerts=false');assert.equal(planning.run('dealAlerts().length'),0);
-assert.match(planning.run('discountsView()'),/Manual tracking/);
+assert.match(planning.run('discountsView()'),/Manual prices/);
 console.log('PASS: discount lows, targets, dismissals, historical observations, disabled alerts and unsafe link rejection.');
 planning.run("data.savingOffers=[{id:'offer-test',title:'Private offer title',store:'Test store',type:'cashback',benefit:'5% cashback',code:'PUBLIC5',url:'https://example.com/offer',terms:'Public terms',notes:'PRIVATE RECEIPT',expires:'2099-12-31',claimBy:'',status:'pending',expected:10,actual:0,receivedOn:'',shareable:true}]");
 assert.equal(planning.run('offerTotals().pending'),10);assert.equal(planning.run('offerTotals().actual'),0);

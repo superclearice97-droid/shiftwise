@@ -4,6 +4,7 @@
 const {app, BrowserWindow, protocol, shell, session, Menu} = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
+const DealAPI = require('../www/deal-api.js');
 
 const WWW = path.join(__dirname, '..', 'www');
 const ORIGIN = 'app://shiftwise';
@@ -20,6 +21,14 @@ function serve() {
   protocol.handle('app', async request => {
     const url = new URL(request.url);
     if (url.host !== 'shiftwise') return new Response('Not found', {status: 404});
+    if (url.pathname === '/api/deals') {
+      if (request.method !== 'POST') return Response.json({error:'Method not allowed'}, {status:405});
+      try {
+        const raw=await request.text();if(raw.length>200000)return Response.json({error:'Request too large'}, {status:413});
+        const result=await DealAPI.run(JSON.parse(raw), {device:true}, globalThis.fetch);
+        return Response.json(result, {headers:{'cache-control':'no-store'}});
+      } catch(e) {return Response.json({error:e.message}, {status:400,headers:{'cache-control':'no-store'}});}
+    }
     const rel = decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname);
     const file = path.normalize(path.join(WWW, rel));
     const type = TYPES[path.extname(file).slice(1)];

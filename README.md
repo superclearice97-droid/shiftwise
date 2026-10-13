@@ -1,6 +1,6 @@
 # Shiftwise
 
-Official release: **v0.2.1**. See [release notes](RELEASE-NOTES.md), [install guide](INSTALL.md), [privacy notice](PRIVACY.md), [third-party notices](THIRD-PARTY-NOTICES.md), and [remaining legal setup](LEGAL-STATUS.md).
+Source version: **v0.3.0**. Downloads update after the main-branch release workflow succeeds. See [release notes](RELEASE-NOTES.md), [install guide](INSTALL.md), [privacy notice](PRIVACY.md), [third-party notices](THIRD-PARTY-NOTICES.md), and [remaining legal setup](LEGAL-STATUS.md).
 
 ## Download the app
 
@@ -23,6 +23,7 @@ The live app's access policy is separate from this repository. A public reposito
 - Expense logging, daily itemized receipts, category summaries, budget comparisons, and locally generated spending suggestions.
 - Savings goals and weekly report cards.
 - Restock countdowns and shopping lists; saved deals, coupons, rebates and cashback tracking.
+- Opt-in local store APIs (Kroger and authorized JSON feeds), up to 10 exact-product target watches, visible/unlocked refresh and OpenAI-compatible AI discount comparisons. See [API connections](API-CONNECTIONS.md).
 - Investment tracking and limited crypto quotes. No connected bank or payroll feeds.
 - Original Canvas 2D isometric night city in grey line art: low-rise blocks, glass towers, palms, forests, marina and port. An elevated metro runs from the city across a gorge bridge to a farming village. Also bubble tab transitions, themes, and pause/reduced-motion controls.
 - AES-GCM vault encryption, encrypted device storage, encrypted backups and offline synchronization.
@@ -50,7 +51,7 @@ These tests do not replace browser/device testing. Frame rate depends on hardwar
 The apps live in `apps/`. `node apps/build-www.mjs` copies `public/` into `apps/www`. It adds `public/device.js`, which replaces the server API with encrypted on-device storage that enforces the server's rules, and it drops the web-only service worker and install pages. Then:
 
 - **Android:** Capacitor 8. `apps/android-build.sh` generates the Android project, applies icons, turns off cloud backup, builds and signs the APK. It needs JDK 21 and the Android SDK.
-- **Linux:** Electron, packaged by electron-builder (`npm run linux` in `apps/`) as AppImage, zip, deb and pacman. `apps/electron/main.cjs` serves only the bundled files, blocks every network request except the opt-in price lookup, and denies device permissions.
+- **Linux:** Electron, packaged by electron-builder (`npm run linux` in `apps/`) as AppImage, zip, deb and pacman. `apps/electron/main.cjs` serves only the bundled files, blocks external renderer requests except the opt-in crypto lookup; configured deal APIs use a validated native transport, and denies device permissions.
 
 `.github/workflows/release.yml` builds everything on each push to `main`. It smoke-tests the AppImage (creating and unlocking a vault) and the APK (on an Android 14 emulator), then publishes a release when `package.json` has a new version.
 

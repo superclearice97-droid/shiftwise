@@ -2,6 +2,7 @@ const json=(body,status=200)=>Response.json(body,{status,headers:{'cache-control
 function db(env){if(!env.DB)throw Error('Database unavailable');return env.DB}
 export default {async fetch(request,env){
  const path=new URL(request.url).pathname;
+ if(path==='/api/deals')return dealResponse(request,env);
  if(path==='/api/markets')return marketResponse(request);
  if(path==='/api/state'){
   const user=request.headers.get('oai-authenticated-user-id');if(!user)return json({error:'Sign in required'},401);

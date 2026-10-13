@@ -4,7 +4,7 @@ function downloadJSON(value,name){if(window.deviceSaveFile)return window.deviceS
 async function exportEncryptedBackup(){try{if(!ready||!vaultKey)throw Error('Unlock your vault first.');const packet=await VaultCrypto.encrypt(clone(data),vaultKey,vaultSalt,accountId,'backup');downloadJSON(packet,'shiftwise-encrypted-'+datekey(new Date())+'.json');toast('Encrypted backup downloaded. Keep your passphrase separately.')}catch(e){toast(e.message)}}
 function gateChrome(){document.body.classList.remove('city-focus');if(typeof updateCityPanel==='function')updateCityPanel();clearExperience();document.body.classList.add('vault-locked');$('#setup').hidden=true;$('#syncError').hidden=true;$('#lockVault').hidden=true;$('#heading').textContent='Your private financial vault.';$('#saveStatus').textContent='Vault locked';$('#syncBadge').textContent='Vault locked';$('#modal').close();$('#form').onsubmit=null;$('#fields').innerHTML='';}
 async function boot(){
- ready=false;gateChrome();$('#content').innerHTML='<div class="card vault-card"><h2>Opening your vault…</h2><p>Checking for encrypted records.</p></div>';
+ ready=false;clearDealConnections();gateChrome();$('#content').innerHTML='<div class="card vault-card"><h2>Opening your vault…</h2><p>Checking for encrypted records.</p></div>';
  try{
   const active=await LocalRecords.rawGet('activeAccount');let remote=null;try{if(navigator.onLine||window.SHIFTWISE_DEVICE)remote=await rawApi()}catch(e){}
   const owner=remote?.userId||active;if(!owner)throw Error('Connect and sign in once to create or download your encrypted vault.');
@@ -39,7 +39,7 @@ async function boot(){
  }catch(e){$('#content').innerHTML=`<div class="card vault-card"><h2>Vault unavailable</h2><p>${esc(e.message)}</p><button data-reload>Try again</button><p><a href="/?reauth=1">Sign in again</a></p></div>`}
 }
 async function lockVault(){
- if(!ready||locking)return;locking=true;ready=false;gateChrome();
+ if(!ready||locking)return;locking=true;ready=false;clearDealConnections();gateChrome();
  try{
   $('#content').innerHTML='<div class="card vault-card"><h2>Locking your vault…</h2></div>';await persistDevice();
   while(syncing)await new Promise(r=>setTimeout(r,100));await writeQueue;

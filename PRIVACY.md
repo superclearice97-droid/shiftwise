@@ -21,7 +21,7 @@ The Android app (APK) and the Linux app (AppImage, zip, deb, pacman) work only o
 - When you export a backup or a restock reminder on Android, the system share sheet opens and you choose where the file goes (for example Files or Drive). That destination's terms then apply to the file. Backups are encrypted; calendar reminder files are not.
 - Live crypto prices are off by default. If you turn them on (Appearance & app), the app asks Coinbase's public price service directly for the coin symbols you track, such as BTC. Only the symbols are sent, never amounts, balances or other records. Coinbase receives your device's internet address and request timing, as with any website. You can turn this off at any time.
 - Links to stores and offers open in your normal browser.
-- The apps contain no advertising, analytics, crash reporting, tracking or automatic update checks. The Linux app blocks all network requests except the optional price lookup. Neither app requests camera, microphone, location, contacts or storage permissions. The Android app declares internet access only for the optional price lookup and outside links.
+- The apps contain no advertising, analytics, crash reporting, tracking or automatic update checks. The Linux renderer blocks external requests except the optional crypto lookup; configured store and AI APIs use a validated native transport. Neither app requests camera, microphone, location, contacts or storage permissions. The Android app declares internet access for optional quote, store and AI requests and outside links.
 - The same 18-or-older self-declaration applies when creating a vault. The age you enter is checked on the device and not stored.
 
 ## Other services (website)
@@ -39,3 +39,9 @@ New vault setup requires an 18-or-older self-declaration. It is not identity ver
 ## Contact
 
 The repository is maintained at https://github.com/superclearice97-droid/shiftwise. Use issues for nonsensitive software questions only. Do not post personal records, passphrases, account identifiers or security exploit details publicly. A verified private privacy/security contact remains an operator setup item; this notice must be updated when it is established.
+
+## Optional store and AI API connections
+
+Connections are off by default. Store checks disclose your entered ZIP, store location ID, product search and authorized bearer credential to the configured store API. No geolocation is used. API keys, watch targets and fetched prices are encrypted at rest with your other records and included in encrypted backups. AI questions require confirmation each time and send the ZIP, question and up to 30 current store observations; no pay, expenses, balances or vault passphrase. AI replies remain in memory and are cleared on lock/refresh. API providers may charge fees and apply their own retention policies.
+
+Downloaded apps connect directly through native transports. The website proxies approved provider requests, so its hosting service transiently handles API keys, search terms and AI context in plaintext; these request payloads are outside the vault encryption boundary. Shiftwise does not log or cache them, but independent infrastructure metadata policies still apply. Optional store polling runs only while visible and unlocked after a first manual check. No closed-app polling or push notifications are provided. See API-CONNECTIONS.md for setup, supported providers, removal and limitations.

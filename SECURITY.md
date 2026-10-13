@@ -40,7 +40,7 @@ Holdings, quantities, cost basis, account balances, balance history, assumptions
 
 ## Discounts
 
-Watchlist items, product URLs, observed prices, targets and alert dismissals are encrypted with the rest of the vault. Price checks are manual; no product URLs are fetched by the app server and no background push service is connected. In-app alerts are computed after unlock from recorded observations. Store links require HTTPS, reject embedded credentials, and open with no referrer. Opening a store link leaves the app and exposes the normal visit to that store.
+Watchlist items, product URLs, observed prices, targets and alert dismissals are encrypted with the rest of the vault. Manual observations remain available. Opt-in store API requests fetch explicit location prices; product webpage URLs are never scraped. Optional polling runs only while visible and unlocked; no background push service is connected. In-app alerts are computed after unlock from recorded observations. Store links require HTTPS, reject embedded credentials, and open with no referrer. Opening a store link leaves the app and exposes the normal visit to that store.
 
 ## Savings offers and sharing
 
@@ -52,3 +52,9 @@ Tile layout, experience preferences and deduplicated achievement markers are par
 
 ## Household supplies
 Restock supply cycles, shopping flags, cost estimates, and links to price/offer records are stored inside the same encrypted vault and use the same encrypted offline and synchronization paths. Calendar reminders are exported only on a user's explicit action and contain a plaintext supply name and reminder date; the receiving calendar manages that exported copy. Install instructions contain no vault data.
+
+## Store and AI request boundary
+
+Keys are encrypted in the vault at rest, but available in unlocked memory. The hosted `/api/deals` endpoint requires authenticated identity, same-origin Origin, JSON, size limits and an exact-origin allowlist (`DEAL_API_ORIGINS`; OpenAI/Kroger by default). Redirects are disabled. Only trusted public HTTPS origins should be enabled: this allowlist is not a DNS rebinding defense for malicious approved hosts. Hosted requests transiently expose the selected key and shopping context to the hosting runtime. At-rest end-to-end vault encryption does not cover API request bodies. No credentials or provider bodies are logged. Configure platform rate limits; the in-memory guard is per isolate.
+
+Downloaded Linux routes deal requests through the same-app native handler, retaining the renderer network deny policy. Its native transport permits HTTPS or explicit local HTTP hosts (numeric RFC1918/loopback and localhost). Android uses Capacitor native HTTPS requests with redirects disabled, without widening renderer CSP. Android local AI requires a trusted HTTPS gateway. AI uses only a minimal projection of current feed observations and explicit question/ZIP after confirmation. Returned content is escaped plain text and cannot execute HTML or create price records. Vault lock invalidates pending responses and clears ephemeral AI/search state.
