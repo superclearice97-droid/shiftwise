@@ -41,6 +41,14 @@ Use any API implementing OpenAI-compatible **Chat Completions**: enter the full 
 
 Each question requires confirmation naming the recipient and showing the question, ZIP and observation count. AI receives up to 30 current feed observations (names, sizes, stores, prices, terms and times). Pay, expenses, holdings, vault passphrases and other providers' keys are excluded. Answers are plain escaped text held in memory, cleared on lock and refresh, and never used as new price observations. AI is advisory; it can still make mistakes. No autonomous purchases, coupon activation or web searches occur. Chat subscriptions are separate from API access and billing.
 
+### AI deal watcher (opt-in)
+
+In **AI & refresh settings**, tick **Let AI watch deals for me** (requires AI comparison) and optionally describe what to look for. After each successful store refresh, Shiftwise sends one request (`action: "aiwatch"`) with the ZIP, up to 30 current observations referenced by number, up to 10 API-linked watches (name, store, size, target) and your note. The model must reply with JSON `{"picks":[{"n":1,"reason":"…"}],"summary":"…"}`; Shiftwise keeps at most 5 valid, unique picks (reasons capped at 300 characters), ignores anything else, and shows them as **✦ AI picks** on the watcher card, the offer cards and the floating deal orbs. Unchanged prices are not re-sent, so a 15-minute refresh costs at most one AI request when something changed. Failures never block store prices. Picks stay in memory and clear on lock. **Turn off** on the watcher card stops automatic requests immediately.
+
+### Deals in motion
+
+The Discounts tab shows saved offers, recorded price drops and connected store prices as floating wireframe orbs. Swipe across them to push and spin them; tap one for details and its action. Arrow keys move between orbs, and a screen-reader list mirrors them. Motion stops with the app's motion setting or the system reduced-motion preference. Drawn locally; nothing is sent.
+
 API reference: https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create. Native HTTP reference: https://capacitorjs.com/docs/apis/http.
 
 ## Refresh and storage
