@@ -36,5 +36,7 @@ Open **Pay settings → Export encrypted backup** every so often, and keep the f
 
 ## Checking a download (optional)
 
-Each release lists SHA-256 checksums in `SHA256SUMS.txt`. The Android app's signing certificate SHA-256 fingerprint is:
-`0D:20:36:8B:51:9B:28:5C:87:47:D7:01:A2:8B:F8:A6:46:88:0D:A8:C3:57:B2:FA:B4:D6:0C:CE:0A:DB:4F:60`
+Each release lists SHA-256 checksums in `SHA256SUMS.txt`. The Android app's signing certificate SHA-256 fingerprint (v0.3.0 and later) is:
+`70:A9:90:B5:3A:85:13:98:D2:27:02:8B:C7:5A:98:B6:51:12:71:EF:F9:77:63:1B:CF:DF:AD:33:09:D9:89:3E`
+
+Versions 0.2.0 and 0.2.1 were signed with an older key (`0D:20:36:8B…`). Android will not update those installs in place: export an encrypted backup from **Pay settings**, uninstall the old app, install the new one, then restore the backup.
