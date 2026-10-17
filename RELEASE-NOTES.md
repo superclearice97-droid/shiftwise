@@ -1,11 +1,13 @@
-# Shiftwise v0.4.0 — deals in motion and an AI deal watcher
+# Shiftwise v0.4.1 — deals in motion and an AI deal watcher
+
+v0.4.1 republishes v0.4.0 with correctly versioned Android and Linux downloads (the v0.4.0 page carried files labelled 0.3.0). Install 0.4.1.
 
 - **Deals in motion.** The Discounts tab now shows your saved offers, price drops and connected store prices as floating, glowing wireframe orbs. Swipe across them and they react to your finger, pushing and spinning along with the motion before drifting back. Tap an orb for its price, store and details. Arrow keys and a screen-reader list work too, and the motion setting or reduced-motion preference keeps them still.
 - **AI deal watcher (opt-in).** Turn on **Let AI watch deals for me** in **Discounts → Connected deals → AI & refresh settings**. After each store refresh, your chosen AI provider reviews the current prices against your watched items, targets and an optional note, then highlights up to 5 deals worth your attention with a short reason. AI picks glow on the orbs and are labelled on the offer cards. It only runs while the app is open and unlocked, skips unchanged prices, never buys anything or activates coupons, and can be turned off with one tap. See PRIVACY.md for exactly what is sent.
 
 ### Updating from 0.2.x on Android
 
-Starting with v0.3.0 the Android app is signed with a new key, so Android cannot update a 0.2.x install in place. Before updating, open **Pay settings → Export encrypted backup**, then uninstall the old app, install `Shiftwise-0.4.0-android.apk` and restore the backup. Updates from 0.3.0 install normally.
+Starting with v0.3.0 the Android app is signed with a new key, so Android cannot update a 0.2.x install in place. Before updating, open **Pay settings → Export encrypted backup**, then uninstall the old app, install `Shiftwise-0.4.1-android.apk` and restore the backup. Updates from 0.3.0 and 0.4.0 install normally.
 
 Android signing certificate SHA-256: `70:A9:90:B5:3A:85:13:98:D2:27:02:8B:C7:5A:98:B6:51:12:71:EF:F9:77:63:1B:CF:DF:AD:33:09:D9:89:3E`
 
