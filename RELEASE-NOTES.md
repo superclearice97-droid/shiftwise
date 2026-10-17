@@ -1,3 +1,15 @@
+# Shiftwise v0.4.2 — smoother scrolling
+
+- **Much smoother scrolling and animation.** The city background no longer redraws behind the app while you scroll, and on phones it holds still behind your records (where it was hidden anyway) and comes alive in **Focus** view. Removed blur effects that were invisible but re-rendered on every frame. In a simulated slow-phone test, scrolling went from about 7 to a steady 60 frames per second (the test's limit).
+- **Lighter floating deals.** The deal orbs draw their glows and labels once and reuse them, and batch their rings, keeping the same look. On a phone that still can't keep up, they switch to a lighter drawing mode automatically.
+- **Running shift timer:** the clock still ticks every second; other live figures now refresh every 10 seconds and never in the middle of a scroll.
+
+Updates from 0.3.0 or later install normally. Updating from 0.2.x on Android still needs the backup, uninstall and restore steps below.
+
+Android signing certificate SHA-256: `70:A9:90:B5:3A:85:13:98:D2:27:02:8B:C7:5A:98:B6:51:12:71:EF:F9:77:63:1B:CF:DF:AD:33:09:D9:89:3E`
+
+---
+
 # Shiftwise v0.4.1 — deals in motion and an AI deal watcher
 
 v0.4.1 republishes v0.4.0 with correctly versioned Android and Linux downloads (the v0.4.0 page carried files labelled 0.3.0). Install 0.4.1.
