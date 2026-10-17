@@ -518,7 +518,12 @@ function start() {
     cityPanX = Math.max((fu - u1) * S, Math.min((fu - u0) * S, cityPanX));
     cityPanY = Math.max((fv - v1) * S, Math.min((fv - v0) * S, cityPanY));
   }
-  const paused = () => (typeof cityPaused !== 'undefined' && cityPaused) || document.hidden || matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.motion === 'reduced';
+  // Outside Focus view the city sits behind the app. On phones the app covers it completely, and on any screen
+  // scrolling must not compete with it, so it holds still there and only moves where it can be seen.
+  let scrollQuiet = 0;
+  document.addEventListener('scroll', () => { scrollQuiet = performance.now() + 250; }, {capture: true, passive: true});
+  const narrow = matchMedia('(max-width: 760px)');
+  const paused = () => (typeof cityPaused !== 'undefined' && cityPaused) || document.hidden || matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.motion === 'reduced' || (!focused() && (narrow.matches || performance.now() < scrollQuiet));
   const focused = () => !!(document.body && document.body.classList && document.body.classList.contains('city-focus'));
 
   function draw(budgetEnd) {

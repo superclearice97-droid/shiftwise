@@ -69,3 +69,7 @@ html[data-motion=reduced] .city-panel,html[data-motion=reduced] #citySummary{ani
 
 .city-panel .meter-caption{letter-spacing:.06em}.city-panel .inspector-select{margin:0 0 16px}
 .city-panel .panel-head .eyebrow{letter-spacing:.08em;font-size:10.5px}
+
+/* Performance: cards and the toolbar inside the app panel sit on its own dark background, so their blur was invisible but re-rendered on every frame. Phones also skip the panel and header blur over the (still) city. */
+body:not(.city-focus):not(.vault-locked) main .card,body:not(.city-focus):not(.vault-locked) main .toolbar{backdrop-filter:none}
+@media(max-width:760px){body>aside,body:not(.city-focus):not(.vault-locked)>main{backdrop-filter:none}}

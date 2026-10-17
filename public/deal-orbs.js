@@ -5,7 +5,7 @@
  const PALETTE=[[255,210,63],[255,79,123],[58,91,255],[47,224,196],[255,138,61],[155,91,255]];
  const SHAPES=['sphere','sphere','bowl','band','sphere','tube'];
  const state=new Map(); // orb physics by deal id, kept across re-renders so orbs never jump
- let field=null,selected='',raf=0,last=0,frame=0;
+ let field=null,selected='',raf=0,last=0,frame=0,lite=false,slow=0; // lite: chosen once per session on slow devices
 
  const hash=s=>{let h=2166136261;for(const ch of String(s)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0};
  const short=(s,n)=>{s=String(s||'');return s.length>n?s.slice(0,n-1)+'…':s};
@@ -65,7 +65,7 @@
   let rows=0,placed=0;while(placed<n){placed+=rows%2?cols-1:cols;rows++}
   const h=Math.max(rows,2)*cell*1.06+cell*.12;
   f.cell=cell;f.w=w;f.h=h;
-  const dpr=Math.min(2,window.devicePixelRatio||1);
+  const dpr=Math.min(lite?1.5:2,window.devicePixelRatio||1);
   f.canvas.width=Math.round(w*dpr);f.canvas.height=Math.round(h*dpr);f.canvas.style.height=h+'px';f.dpr=dpr;
   let i=0;
   for(let r=0;i<n;r++){const count=r%2?cols-1:cols,off=r%2?cell/2:0;for(let c=0;c<count&&i<n;c++,i++){const s=orbState(f.items[i]);s.hx=off+cell*(c+.5);s.hy=cell*(.46+r*1.06);if(s.x===null){s.x=s.hx;s.y=s.hy}}}
@@ -78,40 +78,55 @@
   return t<.5?mix(a,b,t*2):mix(b,c,(t-.5)*2);
  }
 
+ // Ring tables at unit radius: [height, ring radius, pole-to-pole position], computed once per shape.
+ const RINGS={
+  bowl:Array.from({length:9},(_,i)=>{const t=i/8*.96;return [t,Math.sqrt(1-t*t),i/8]}),
+  band:Array.from({length:9},(_,i)=>{const t=-.42+i/8*.84;return [t,Math.sqrt(1-t*t),i/8]}),
+  tube:Array.from({length:10},(_,i)=>{const t=-.7+i/9*1.4;return [t,.66,i/9]}),
+  sphere:Array.from({length:18},(_,i)=>{const t=-.95+i/17*1.9;return [t,Math.sqrt(1-t*t),i/17]})
+ };
+ const sprites=new Map(); // glows and text labels drawn once, then copied each frame
+ function sprite(key,w,h,paint){let c=sprites.get(key);if(!c){if(sprites.size>200)sprites.clear();c=document.createElement('canvas');c.width=Math.ceil(w);c.height=Math.ceil(h);paint(c.getContext('2d'));sprites.set(key,c)}return c}
+ function glowSprite(col,dpr){const n=128;return sprite('glow:'+col+dpr,n,n,g=>{const r=g.createRadialGradient(n/2,n/2,n*.07,n/2,n/2,n/2);r.addColorStop(0,`rgba(${col},1)`);r.addColorStop(1,`rgba(${col},0)`);g.fillStyle=r;g.fillRect(0,0,n,n)})}
+ function labelSprite(f,item){
+  const d=f.dpr,big=Math.max(11,Math.min(15,f.cell*.13)),small=Math.max(10,Math.min(12,f.cell*.105)),gap=Math.max(27,f.cell*.31)-Math.max(14,f.cell*.17),w=f.cell*1.1,h=gap+small+big;
+  return sprite(['label',item.id,item.value,item.title,f.cell|0,d].join('|'),w*d,h*d,g=>{g.scale(d,d);g.textAlign='center';g.textBaseline='alphabetic';
+   g.fillStyle='rgba(255,255,255,.95)';g.font=`700 ${big}px 'Shiftwise Sans',system-ui,sans-serif`;g.fillText(short(item.value,12),w/2,big);
+   g.fillStyle='rgba(225,232,240,.62)';g.font=`400 ${small}px 'Shiftwise Sans',system-ui,sans-serif`;g.fillText(short(item.title,f.cell<90?12:18),w/2,big+gap)});
+ }
+
  function drawOrb(ctx,f,item,s,R,time){
-  const m=s.m,nx=m[1],ny=m[4],nz=m[7],ang=Math.atan2(ny,nx)+Math.PI/2;
-  let rings;
-  if(s.shape==='bowl')rings=Array.from({length:12},(_,i)=>{const t=i/11*.96;return [t*R,R*Math.sqrt(1-t*t),i/11]});
-  else if(s.shape==='band')rings=Array.from({length:12},(_,i)=>{const t=-.42+i/11*.84;return [t*R,R*Math.sqrt(1-t*t),i/11]});
-  else if(s.shape==='tube')rings=Array.from({length:13},(_,i)=>{const t=-.7+i/12*1.4;return [t*R,R*.66,i/12]});
-  else rings=Array.from({length:20},(_,i)=>{const t=-.95+i/19*1.9;return [t*R,R*Math.sqrt(1-t*t),i/19]});
+  const m=s.m,nx=m[1],ny=m[4],nz=m[7],ang=Math.atan2(ny,nx)+Math.PI/2,rings=RINGS[s.shape]||RINGS.sphere;
   const ghost=item.ghost,sel=item.id===selected;
   if(item.pick||sel){
-   const glow=ctx.createRadialGradient(s.x,s.y,R*.2,s.x,s.y,R*1.45),pulse=.55+.25*Math.sin(time*3+s.phase);
-   const col=item.pick?'255,210,63':'47,224,196';
-   glow.addColorStop(0,`rgba(${col},${(sel?.22:.14)*pulse})`);glow.addColorStop(1,`rgba(${col},0)`);
-   ctx.fillStyle=glow;ctx.beginPath();ctx.arc(s.x,s.y,R*1.45,0,Math.PI*2);ctx.fill();
+   const pulse=.55+.25*Math.sin(time*3+s.phase),g=R*1.45;
+   ctx.globalAlpha=(sel?.22:.14)*pulse;ctx.drawImage(glowSprite(item.pick?'255,210,63':'47,224,196',f.dpr),s.x-g,s.y-g,g*2,g*2);ctx.globalAlpha=1;
   }
+  // Rings are batched into a few paths (3 colour bands x front/back) so each orb costs ~6 strokes, not one per ring.
   ctx.lineWidth=ghost?.8:1.05;
-  for(const [y,r,t] of rings){
-   const depth=(y/R)*nz,alpha=(ghost?.22:.5)+(ghost?.16:.5)*(depth+1)/2,c=ringColor(s,t);
-   ctx.strokeStyle=`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${alpha})`;
-   ctx.beginPath();ctx.ellipse(s.x+nx*y,s.y+ny*y,Math.max(.5,r),Math.max(.35,r*Math.abs(nz)),ang,0,Math.PI*2);ctx.stroke();
+  for(let band=0;band<3;band++)for(const front of [false,true]){
+   let any=false;ctx.beginPath();
+   for(const [u,v,t] of rings){
+    if(Math.min(2,t*3|0)!==band||(u*nz>0)!==front)continue;
+    const y=u*R,r=v*R;ctx.moveTo(s.x+nx*y+Math.cos(ang)*r,s.y+ny*y+Math.sin(ang)*r);
+    ctx.ellipse(s.x+nx*y,s.y+ny*y,Math.max(.5,r),Math.max(.35,r*Math.abs(nz)),ang,0,Math.PI*2);any=true;
+   }
+   if(!any)continue;
+   const c=PALETTE[(s.hue+band)%PALETTE.length],alpha=ghost?(front?.38:.24):(front?.95:.6);
+   ctx.strokeStyle=`rgba(${c[0]|0},${c[1]|0},${c[2]|0},${alpha})`;ctx.stroke();
   }
   if(s.pulse>0){ctx.strokeStyle=`rgba(255,255,255,${s.pulse*.6})`;ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(s.x,s.y,R*(1.05+(1-s.pulse)*.5),0,Math.PI*2);ctx.stroke()}
   if(ghost)return;
-  ctx.textAlign='center';ctx.fillStyle='rgba(255,255,255,.95)';ctx.font=`700 ${Math.max(11,Math.min(15,f.cell*.13))}px 'Shiftwise Sans',system-ui,sans-serif`;
-  ctx.fillText(short(item.value,12),s.x,s.y+R+Math.max(14,f.cell*.17));
-  ctx.fillStyle='rgba(225,232,240,.62)';ctx.font=`400 ${Math.max(10,Math.min(12,f.cell*.105))}px 'Shiftwise Sans',system-ui,sans-serif`;
-  ctx.fillText(short(item.title,f.cell<90?12:18),s.x,s.y+R+Math.max(27,f.cell*.31));
-  if(item.pick){ctx.fillStyle='rgba(255,210,63,.95)';ctx.font=`700 ${Math.max(11,f.cell*.12)}px system-ui,sans-serif`;ctx.fillText('✦',s.x+R*.85,s.y-R*.8)}
+  const lab=labelSprite(f,item),lw=lab.width/f.dpr,lh=lab.height/f.dpr,big=Math.max(11,Math.min(15,f.cell*.13));
+  ctx.drawImage(lab,s.x-lw/2,s.y+R+Math.max(14,f.cell*.17)-big,lw,lh);
+  if(item.pick){ctx.fillStyle='rgba(255,210,63,.95)';ctx.font=`700 ${Math.max(11,f.cell*.12)}px system-ui,sans-serif`;ctx.textAlign='center';ctx.fillText('✦',s.x+R*.85,s.y-R*.8)}
  }
 
  function draw(time){
   const f=field;if(!f)return;
   const ctx=f.canvas.getContext('2d');ctx.setTransform(f.dpr,0,0,f.dpr,0,0);
   ctx.globalCompositeOperation='source-over';ctx.clearRect(0,0,f.w,f.h);
-  ctx.globalCompositeOperation='lighter';
+  if(!lite)ctx.globalCompositeOperation='lighter';
   for(const item of f.items){const s=orbState(item),scale=item.ghost?.8:.86+Math.min(.6,item.pct)*.45;drawOrb(ctx,f,item,s,f.cell*.31*scale,time)}
   ctx.globalCompositeOperation='source-over';
  }
@@ -134,6 +149,8 @@
   if(!f||!f.canvas.isConnected){stop();return}
   if(document.hidden||!f.visible){last=0;return}
   const dt=Math.min(.05,last?(now-last)/1000:.016);last=now;
+  // Safety net for slower phones: if most recent frames miss ~45 fps, switch once to a lighter drawing mode.
+  if(!lite&&!document.hidden){slow=Math.max(0,slow+(dt>1/45?1:-.5));if(slow>40){lite=true;layout(f)}}
   if(!reduced())step(dt,now/1000);
   draw(now/1000);
   if(!reduced())raf=requestAnimationFrame(loop);
