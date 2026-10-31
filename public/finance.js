@@ -49,7 +49,9 @@ function unlinkBank(){if(!confirm('Unlink bank accounts?\n\nThis deletes the Sim
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||!ready)return;if(b.id==='linkBank'||b.id==='linkBankHero')linkBankModal();if(b.id==='refreshBank')refreshBank(true);if(b.id==='unlinkBank')unlinkBank()});
 
 // ---------- Charts: thin marks, a glow drawn as a wider faint stroke (no filters), native hover titles ----------
-const finMoney=n=>money(n).replace('.00','');
+// Formatters are built once: creating them per value dominated the grid's build time on slow phones.
+const FIN_USD=new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}),FIN_MD=new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric'}),FIN_WD=new Intl.DateTimeFormat('en-US',{weekday:'short'});
+const finUsd=n=>FIN_USD.format(n),finMoney=n=>finUsd(n).replace('.00','');
 function finCompact(n){const a=Math.abs(n);return (n<0?'−':'')+'$'+(a>=1e6?(a/1e6).toFixed(1)+'M':a>=1e4?Math.round(a/1e3)+'k':a>=1e3?(a/1e3).toFixed(1)+'k':Math.round(a))}
 let finChartId=0;
 function finLine(series,labels,{height=150,label='Line chart',width=600}={}){
@@ -58,11 +60,11 @@ function finLine(series,labels,{height=150,label='Line chart',width=600}={}){
  const x=i=>pad.l+(labels.length<2?0:i/(labels.length-1))*(w-pad.l-pad.r),y=v=>pad.t+(1-(v-min)/(max-min))*(h-pad.t-pad.b);
  const id='fg'+(++finChartId),grid=[max,(max+min)/2,min].map(v=>`<line x1="${pad.l}" x2="${w-pad.r}" y1="${y(v)}" y2="${y(v)}" class="fin-gridline"/><text x="${pad.l-6}" y="${y(v)+4}" text-anchor="end">${finCompact(v)}</text>`).join('');
  const paths=series.map((s,k)=>{const d=s.values.map((v,i)=>(i?'L':'M')+x(i).toFixed(1)+','+y(v).toFixed(1)).join('');const area=k===0&&series.length===1?`<path d="${d}L${x(s.values.length-1)},${y(min)}L${x(0)},${y(min)}Z" fill="url(#${id})"/>`:'';return `${area}<path d="${d}" stroke="${s.color}" class="fin-glow"/><path d="${d}" stroke="${s.color}" class="fin-stroke"/>`}).join('');
- const hits=labels.map((l,i)=>`<rect x="${x(i)-(w-pad.l-pad.r)/Math.max(1,labels.length-1)/2}" y="${pad.t}" width="${(w-pad.l-pad.r)/Math.max(1,labels.length-1)}" height="${h-pad.t-pad.b}" class="fin-hit"><title>${esc(l)}: ${series.map(s=>esc(s.name)+' '+money(s.values[i])).join(' · ')}</title></rect>`).join('');
+ const hits=labels.map((l,i)=>`<rect x="${x(i)-(w-pad.l-pad.r)/Math.max(1,labels.length-1)/2}" y="${pad.t}" width="${(w-pad.l-pad.r)/Math.max(1,labels.length-1)}" height="${h-pad.t-pad.b}" class="fin-hit"><title>${esc(l)}: ${series.map(s=>esc(s.name)+' '+finUsd(s.values[i])).join(' · ')}</title></rect>`).join('');
  const last=series.map(s=>`<circle cx="${x(s.values.length-1)}" cy="${y(s.values.at(-1))}" r="4" fill="${s.color}" class="fin-dot"/>`).join('');
  return `<svg class="fin-chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(label)}"><defs><linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${series[0].color}" stop-opacity=".28"/><stop offset="1" stop-color="${series[0].color}" stop-opacity="0"/></linearGradient></defs>${grid}${paths}${last}<text x="${pad.l}" y="${h-5}">${esc(labels[0])}</text><text x="${w-pad.r}" y="${h-5}" text-anchor="end">${esc(labels.at(-1))}</text>${hits}</svg>`;
 }
-function finBars(values,labels,color,{height=130,label='Bar chart',fmt=money,every=1}={}){
+function finBars(values,labels,color,{height=130,label='Bar chart',fmt=finUsd,every=1}={}){
  const w=600,h=height,pad={l:8,r:8,t:10,b:28},max=Math.max(1e-9,...values),n=values.length,step=(w-pad.l-pad.r)/n,bw=Math.max(2,step-2);
  return `<svg class="fin-chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="${esc(label)}"><line x1="${pad.l}" x2="${w-pad.r}" y1="${h-pad.b}" y2="${h-pad.b}" class="fin-gridline"/>${values.map((v,i)=>{const bh=v>0?Math.max(2,v/max*(h-pad.t-pad.b)):0,x=pad.l+i*step+(step-bw)/2;return `<g><rect x="${x}" y="${pad.t}" width="${step}" height="${h-pad.t-pad.b}" class="fin-hit"/>${bh?`<rect x="${x}" y="${h-pad.b-bh}" width="${bw}" height="${bh}" rx="${Math.min(4,bw/2)}" fill="${color}" class="fin-bar"/>`:''}${(i%every===0&&n-1-i>=every/2)||i===n-1?`<text x="${x+bw/2}" y="${h-5}" text-anchor="middle">${esc(labels[i])}</text>`:''}<title>${esc(labels[i])}: ${esc(fmt(v))}</title></g>`}).join('')}</svg>`;
 }
@@ -76,17 +78,18 @@ function financeGrid(){
  if(!ready)return '<p class="panel-caption">Unlock your vault to see your finances.</p>';
  if(bankLinked()&&!bankAutoTried&&!bankBusy&&Date.now()-(Date.parse(data.bankLink.lastSync)||0)>BANK_AUTO_AFTER){bankAutoTried=true;setTimeout(()=>refreshBank(false),0)}
  const today=new Date();today.setHours(0,0,0,0);
- const dayKeys=Array.from({length:30},(_,i)=>datekey(plus(today,i-29))),short=k=>new Date(k+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+ const dayKeys=Array.from({length:30},(_,i)=>datekey(plus(today,i-29))),short=k=>FIN_MD.format(new Date(k+'T12:00:00'));
  const thisWeek=startWeek(new Date()),p=calc(hours(thisWeek,plus(thisWeek,7))),wStart=datekey(thisWeek),wEnd=datekey(plus(thisWeek,7));
  const weekExp=data.expenses.filter(e=>e.date>=wStart&&e.date<wEnd),spent=weekExp.reduce((n,e)=>n+e.amount,0),budget=data.weeks.find(w=>w.id===wStart)?.budgetEnabled?data.weeks.find(w=>w.id===wStart).budgetTarget:data.settings.budget;
  const accounts=usdAccounts(),linked=bankLinked(),txs=data.bankTransactions.filter(t=>accounts.some(a=>a.id===t.accountId));
  const cash=accounts.filter(a=>a.balance>0).reduce((n,a)=>n+a.balance,0),owed=accounts.filter(a=>a.balance<0).reduce((n,a)=>n-a.balance,0),netLinked=cash-owed;
  let invested=0,held=0,cost=0;try{for(const x of data.investments){const v=investmentValue(x);invested+=v;if(['stock','crypto'].includes(x.kind)){held+=v;cost+=x.quantity*x.averageCost}}}catch(e){}
  // Eight weeks of estimated take-home against logged spending (same dollar axis).
- const weeks=Array.from({length:8},(_,i)=>plus(thisWeek,(i-7)*7)),weekLabels=weeks.map(w=>w.toLocaleDateString('en-US',{month:'short',day:'numeric'}));
+ const weeks=Array.from({length:8},(_,i)=>plus(thisWeek,(i-7)*7)),weekLabels=weeks.map(w=>FIN_MD.format(w));
  const weekNet=weeks.map(w=>calc(hours(w,plus(w,7))).net),weekSpent=weeks.map(w=>{const a=datekey(w),b=datekey(plus(w,7));return data.expenses.filter(e=>e.date>=a&&e.date<b).reduce((n,e)=>n+e.amount,0)});
  // Daily money out: bank downloads when linked, otherwise logged expenses.
- const outByDay=dayKeys.map(k=>linked?txs.filter(t=>!t.pending&&t.amount<0&&datekey(new Date(t.posted))===k).reduce((n,t)=>n-t.amount,0):data.expenses.filter(e=>e.date===k).reduce((n,e)=>n+e.amount,0));
+ const outMap={};if(linked){for(const t of txs)if(!t.pending&&t.amount<0){const k=datekey(new Date(t.posted));outMap[k]=(outMap[k]||0)-t.amount}}else for(const e of data.expenses)outMap[e.date]=(outMap[e.date]||0)+e.amount;
+ const outByDay=dayKeys.map(k=>outMap[k]||0);
  // Balance trail: today's balance minus everything posted after each day. Only as complete as the downloaded history.
  const balanceTrail=finBalanceTrail(netLinked,txs,dayKeys);
  const monthStart=datekey(new Date(today.getFullYear(),today.getMonth(),1)),cats={};for(const e of data.expenses)if(e.date>=monthStart)cats[e.category||'Other']=(cats[e.category||'Other']||0)+e.amount;
@@ -103,11 +106,11 @@ function financeGrid(){
   finTile('fin-side','Budget this week',budget>0?'Logged expenses':'',finRing(budget>0?spent/budget:0,spent>budget?FIN_COLORS.magenta:FIN_COLORS.violet,budget>0?Math.round(spent/budget*100)+'%':'—',budget>0?'of '+finMoney(budget):'no budget')+`<p class="fin-note">${budget>0?(spent<=budget?finMoney(budget-spent)+' left to spend':'Over by '+finMoney(spent-budget)):'Set a budget in Pay settings.'}</p>`,FIN_COLORS.violet),
   finTile('fin-half','Take-home vs spending · 8 weeks','<i class="fin-key" style="--k:'+FIN_COLORS.cyan+'"></i>Take-home (est.) <i class="fin-key" style="--k:'+FIN_COLORS.orange+'"></i>Logged spending',finLine([{name:'Take-home',color:FIN_COLORS.cyan,values:weekNet},{name:'Spending',color:FIN_COLORS.orange,values:weekSpent}],weekLabels,{label:'Estimated take-home and logged spending for the last 8 weeks'}),FIN_COLORS.cyan),
   finTile('fin-half',linked?'Bank money out · 30 days':'Logged spending · 30 days',linked?'Includes transfers and card payments':'From your expense entries',outByDay.some(v=>v>0)?finBars(outByDay,dayKeys.map(short),FIN_COLORS.orange,{label:'Money out per day for 30 days',every:7}):finEmpty('No spending recorded in the last 30 days.'),FIN_COLORS.orange),
-  finTile('fin-third','Hours this week','Daily, unpaid breaks excluded',finBars(days,days.map((_,i)=>plus(thisWeek,i).toLocaleDateString('en-US',{weekday:'short'})),FIN_COLORS.cyan,{height:120,label:'Hours worked each day this week',fmt:v=>v.toFixed(1)+' hrs'}),FIN_COLORS.cyan),
+  finTile('fin-third','Hours this week','Daily, unpaid breaks excluded',finBars(days,days.map((_,i)=>FIN_WD.format(plus(thisWeek,i))),FIN_COLORS.cyan,{height:120,label:'Hours worked each day this week',fmt:v=>v.toFixed(1)+' hrs'}),FIN_COLORS.cyan),
   finTile('fin-third','Where it went · this month','Logged expenses by category',catRows.length?`<ul class="fin-hbars">${catRows.map(([c,v],i)=>`<li><span>${esc(c)}</span><b>${finMoney(v)}</b><i style="width:${v/catMax*100}%;--k:${Object.values(FIN_COLORS)[i%4]}"></i></li>`).join('')}</ul>`:finEmpty('Log expenses to see categories.'),FIN_COLORS.orange),
   finTile('fin-third','Goals',data.goals.length?data.goals.length+' saving':'',data.goals.length?`<div class="fin-rings">${data.goals.slice(0,3).map((g,i)=>finRing(totalSaved(g)/g.target,Object.values(FIN_COLORS)[(i+1)%4],Math.round(totalSaved(g)/g.target*100)+'%',g.name.length>11?g.name.slice(0,10)+'…':g.name)).join('')}</div>`:finEmpty('Create a savings goal to track it here.'),FIN_COLORS.violet),
   finTile('fin-half','Accounts',linked?(bankBusy?'Updating…':last?'Updated '+esc(last):'Not updated yet'):'Read-only via SimpleFIN · experimental',`${linked&&data.bankAccounts.length?`<ul class="fin-list">${data.bankAccounts.map(a=>`<li><span>${esc(a.name)}<small>${esc(a.org)}${a.available!==null&&a.available!==a.balance?' · '+esc(a.currency==='USD'?finMoney(a.available):a.available+' '+a.currency)+' available':''}</small></span><b class="${a.balance<0?'fin-neg':''}">${a.currency==='USD'?finMoney(a.balance):esc(a.balance+' '+a.currency)}</b></li>`).join('')}</ul>`:''}${bankErrors.map(m=>`<p class="fin-warn">${esc(m)}</p>`).join('')}${bankMessage?`<p class="fin-note" role="status">${esc(bankMessage)}</p>`:''}<div class="fin-actions">${linked?`<button id="refreshBank" ${bankBusy?'disabled':''}>${bankBusy?'Updating…':'Refresh'}</button><button id="unlinkBank">Unlink</button>`:`<button id="linkBank">Link bank accounts</button>`}</div>`,FIN_COLORS.magenta),
-  finTile('fin-half','Recent bank activity',linked?'Pending items marked':'',txs.length?`<ul class="fin-list">${txs.slice(0,7).map(t=>`<li><span>${esc(t.description)}<small>${new Date(t.posted).toLocaleDateString('en-US',{month:'short',day:'numeric'})}${t.pending?' · pending':''}</small></span><b class="${t.amount<0?'':'fin-pos'}">${t.amount<0?'−':'+'}${finMoney(Math.abs(t.amount))}</b></li>`).join('')}</ul>`:finEmpty(linked?'No transactions downloaded yet.':'Transactions appear here after linking a bank.'),FIN_COLORS.cyan)
+  finTile('fin-half','Recent bank activity',linked?'Pending items marked':'',txs.length?`<ul class="fin-list">${txs.slice(0,7).map(t=>`<li><span>${esc(t.description)}<small>${FIN_MD.format(new Date(t.posted))}${t.pending?' · pending':''}</small></span><b class="${t.amount<0?'':'fin-pos'}">${t.amount<0?'−':'+'}${finMoney(Math.abs(t.amount))}</b></li>`).join('')}</ul>`:finEmpty(linked?'No transactions downloaded yet.':'Transactions appear here after linking a bank.'),FIN_COLORS.cyan)
  ];
  return `<div class="fin-grid">${tiles.join('')}</div><p class="panel-caption">Take-home figures are estimates. Bank figures come from SimpleFIN and may lag your bank. Not financial advice.</p>`;
 }
