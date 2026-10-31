@@ -73,3 +73,51 @@ html[data-motion=reduced] .city-panel,html[data-motion=reduced] #citySummary{ani
 /* Performance: cards and the toolbar inside the app panel sit on its own dark background, so their blur was invisible but re-rendered on every frame. Phones also skip the panel and header blur over the (still) city. */
 body:not(.city-focus):not(.vault-locked) main .card,body:not(.city-focus):not(.vault-locked) main .toolbar{backdrop-filter:none}
 @media(max-width:760px){body>aside,body:not(.city-focus):not(.vault-locked)>main{backdrop-filter:none}}
+
+/* Finance grid: the pull-down panel opens out into a live tile grid over the city. Tiles are translucent so the
+   train shows between them; no backdrop blur (it re-renders every frame on phones). */
+.city-panel.finance-mode{left:18px;right:18px;width:auto;bottom:18px;max-height:none;padding:16px 18px 14px;background:#07090bb8;border-color:#1d2a30;display:flex;flex-direction:column}
+.city-panel.finance-mode .panel-head{order:-2}.city-panel.finance-mode .inspector-select{order:-1;max-width:280px}
+.city-panel.finance-mode .panel-divider,.city-panel.finance-mode>.eyebrow,.city-panel.finance-mode .scene-controls,.city-panel.finance-mode>.panel-caption{flex-shrink:0}
+.finance-grid-open:not(.vault-locked)>main{visibility:hidden}
+.fin-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:10px}
+.fin-tile{grid-column:span 4;position:relative;min-width:0;background:#0b1014e0;border:1px solid #1c272d;border-radius:10px;padding:13px 14px 12px;overflow:hidden;font-family:'Shiftwise Mono',ui-monospace,monospace}
+.fin-tile:before{content:'';position:absolute;inset:0 0 auto;height:1px;background:linear-gradient(90deg,transparent,var(--tile),transparent);opacity:.75}
+.fin-tile header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 10px;margin-bottom:8px}
+.fin-tile h3{margin:0;font:500 11px/1.3 'Shiftwise Mono',ui-monospace,monospace;letter-spacing:.12em;text-transform:uppercase;color:#d8e2e6}
+.fin-tile header small{font-size:10.5px;color:#7f8d94;letter-spacing:.04em}
+.fin-kpi{grid-column:span 3;display:flex;flex-direction:column;gap:5px}
+.fin-kpi small{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:#8a979e}
+.fin-kpi strong{font:500 24px/1.1 'Shiftwise Mono',ui-monospace,monospace;color:#f3f6f7;text-shadow:0 0 18px color-mix(in srgb,var(--tile) 55%,transparent);overflow-wrap:anywhere}
+.fin-kpi span{font-size:11px;color:#8f9ca3}.fin-kpi:after{content:'';height:2px;border-radius:2px;margin-top:4px;background:var(--tile);box-shadow:0 0 10px var(--tile);width:38%}
+.fin-wide{grid-column:span 8}.fin-side{grid-column:span 4;text-align:center}.fin-half{grid-column:span 6}.fin-third{grid-column:span 4}
+.fin-chart{display:block;width:100%;height:auto;overflow:visible}
+.fin-chart text,.fin-ring text{fill:#7f8d94;font:11px 'Shiftwise Mono',ui-monospace,monospace}
+.fin-gridline{stroke:#ffffff14;stroke-width:1}
+.fin-stroke{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.fin-glow{fill:none;stroke-width:9;stroke-opacity:.16;stroke-linejoin:round;stroke-linecap:round}
+.fin-dot{stroke:#0b1014;stroke-width:2}
+.fin-bar{opacity:.9}.fin-hit{fill:transparent}g:hover>.fin-bar{opacity:1;filter:brightness(1.25)}.fin-hit:hover{fill:#ffffff0a}
+.fin-ring{width:min(150px,100%);height:auto;display:block;margin:2px auto}
+.fin-ring-track{fill:none;stroke:#ffffff12;stroke-width:7}.fin-ring-arc{fill:none;stroke-width:5;stroke-linecap:round}
+.fin-ring .fin-glow{stroke-width:12}.fin-ring .fin-ring-value{fill:#f3f6f7;font-size:19px}
+.fin-rings{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}.fin-rings .fin-ring-value{font-size:16px}.fin-rings text{font-size:10px}
+.fin-hbars{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+.fin-hbars li{display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:12px;color:#c9d3d7}
+.fin-hbars li span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.fin-hbars li b{font-weight:500;color:#eef3f4}
+.fin-hbars i{grid-column:1/-1;display:block;height:4px;border-radius:2px;background:var(--k);box-shadow:0 0 8px color-mix(in srgb,var(--k) 60%,transparent);min-width:4px}
+.fin-list{list-style:none;margin:0;padding:0}
+.fin-list li{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #ffffff0f;font-size:12.5px;color:#dfe7ea}
+.fin-list li span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.fin-list small{display:block;color:#7f8d94;font-size:10.5px;margin-top:2px;overflow:hidden;text-overflow:ellipsis}
+.fin-list b{font-weight:500;flex-shrink:0}.fin-neg{color:#ff8ab8}.fin-pos{color:#5fe0d2}
+.fin-key{display:inline-block;width:10px;height:2px;background:var(--k);vertical-align:middle;margin:0 5px 0 8px;box-shadow:0 0 6px var(--k)}
+.fin-empty{color:#7f8d94;font-size:12px;line-height:1.55;margin:14px 0}.fin-note{font-size:11.5px;color:#a7b3b9;margin:8px 0 0}
+.fin-warn{font-size:11.5px;color:#ffc58a;border-left:2px solid #f08a2c;padding-left:8px;margin:8px 0}
+.fin-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.fin-tile button{font:11px/1 'Shiftwise Mono',ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;padding:9px 13px;border-radius:8px;border:1px solid #2f3d44;background:transparent;color:#eef3f4}
+.fin-tile button:hover{border-color:var(--tile);box-shadow:0 0 12px color-mix(in srgb,var(--tile) 35%,transparent)}
+.fin-cta{border-color:var(--tile)!important}
+.fin-steps{padding-left:18px;line-height:1.6}
+@media(max-width:1100px){.fin-grid{grid-template-columns:repeat(6,minmax(0,1fr))}.fin-kpi,.fin-third,.fin-side{grid-column:span 3}.fin-wide,.fin-half{grid-column:span 6}}
+@media(max-width:760px){.city-panel.finance-mode{left:10px;right:10px;width:auto;top:98px;bottom:10px;padding:12px}.city-panel.finance-mode .inspector-select{max-width:none}.fin-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.fin-kpi{grid-column:span 1;padding:11px}.fin-kpi strong{font-size:19px}.fin-wide,.fin-half,.fin-third,.fin-side{grid-column:span 2}.fin-tile{padding:11px 12px}.fin-chart text{font-size:19px}}
+html[data-motion=reduced] .finance-mode #citySummary{animation:none!important}

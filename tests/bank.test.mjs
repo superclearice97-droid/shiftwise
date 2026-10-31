@@ -67,3 +67,28 @@ const m=Core.merge({bankAccounts:[got.accounts[0]]},{bankAccounts:[{...got.accou
 same(m.data.bankAccounts.map(x=>[x.id,x.balance]),[['chk',5],['card',-300]]);assert.equal(m.conflicts.length,0);
 console.log('PASS: vault validation and sync merge for linked accounts and transactions.');
 
+// App side: refresh throttling, lock safety and grid rendering with escaped bank text.
+let saves=0,renders=0,resolveFetch;const els=new Map(),el=k=>{if(!els.has(k))els.set(k,{textContent:'',innerHTML:'',close(){}});return els.get(k)};
+const app={...scope,setTimeout:()=>0,console,document:{addEventListener(){},querySelector:el},window:{SHIFTWISE_DEVICE:true},confirm:()=>true,$:el,ready:true,accountId:'me',clone:x=>structuredClone(x),save:async()=>saves++,render:()=>renders++,modal(){},
+ money:x=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(x),esc:s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),
+ plus:(d,n)=>{d=new Date(d);d.setDate(d.getDate()+n);return d},datekey:d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,startWeek:d=>{d=new Date(d);d.setHours(0,0,0,0);d.setDate(d.getDate()-d.getDay());return d},
+ calc:h=>({h,net:h*20}),hours:()=>8,investmentValue:x=>x.balance,totalSaved:g=>g.saved,
+ data:{...structuredClone(linked),bankLink:{accessUrl:ACCESS,lastSync:''},settings:{...base.settings},weeks:[],investments:[],goals:[{id:'g',name:'Trip',target:1000,saved:250}],expenses:[{id:'e',name:'Lunch',category:'Food',date:new Date().toISOString().slice(0,10),amount:12}]}};
+vm.createContext(app);vm.runInContext(fs.readFileSync('public/finance.js','utf8'),app);const run=s=>vm.runInContext(s,app);
+app.originalFetch=async(path,init)=>{assert.equal(path,'/api/bank');const p=JSON.parse(init.body);return new Promise(r=>resolveFetch=()=>r(Response.json({...B.normalize(v2,Date.now()),checkedAt:new Date().toISOString()})))};
+let pending=run('refreshBank(true)');assert(run('bankBusy'));resolveFetch();await pending;
+assert.equal(run('data.bankAccounts.length'),2);assert(run('data.bankLink.lastSync'));assert.equal(saves,1);same(run('bankErrors'),['Reconnect Credit Union']);
+let requested=false;app.originalFetch=async()=>{requested=true;throw Error('should not fetch')};
+await run('refreshBank(true)');assert.equal(requested,false,'second refresh within an hour is refused locally');assert.match(run('bankMessage'),/about one update an hour/);
+// A lock while a download is in flight discards the result.
+run("data.bankLink.lastSync=''");app.originalFetch=async()=>new Promise(r=>resolveFetch=()=>r(Response.json({accounts:[],transactions:[],errors:[],checkedAt:new Date().toISOString()})));
+const before=saves;pending=run('refreshBank(true)');app.ready=false;run('data={...data}');resolveFetch();await pending;assert.equal(saves,before);assert.equal(run('data.bankAccounts.length'),2);app.ready=true;
+// Website builds never send bank access through a server.
+app.window.SHIFTWISE_DEVICE=false;await fail(()=>run("bankRequest({action:'accounts'})"),/Android and Linux apps only/);app.window.SHIFTWISE_DEVICE=true;
+run("data.bankLink.lastSync=new Date().toISOString()");const html=run('financeGrid()');
+assert(html.includes('fin-grid'));assert(!html.includes('<img src=x'),'bank descriptions are escaped');assert(html.includes('Grocery &lt;img'));assert(html.includes('First Bank'));assert(html.includes('id="refreshBank"'));assert(!/NaN|undefined|Infinity/.test(html));
+run("data.bankLink={accessUrl:'',lastSync:''};data.bankAccounts=[];data.bankTransactions=[]");const empty=run('financeGrid()');assert(empty.includes('id="linkBank"'));assert(!/NaN|undefined|Infinity/.test(empty));
+// Balance trail: end-of-day totals step back through posted transactions; pending ones are ignored.
+const days=['2026-10-29','2026-10-30','2026-10-31'],txs=[{posted:'2026-10-30T12:00:00','amount':-50,pending:false},{posted:'2026-10-31T12:00:00',amount:200,pending:false},{posted:'2026-10-31T13:00:00',amount:-9,pending:true}];
+same(Array.from(run('finBalanceTrail')(1000,txs,days)),[850,800,1000]);
+console.log('PASS: app refresh throttle, lock-safe downloads, device-only transport, escaped grid rendering and balance trail.');

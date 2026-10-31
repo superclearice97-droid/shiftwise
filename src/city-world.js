@@ -523,8 +523,9 @@ function start() {
   let scrollQuiet = 0;
   document.addEventListener('scroll', () => { scrollQuiet = performance.now() + 250; }, {capture: true, passive: true});
   const narrow = matchMedia('(max-width: 760px)');
-  const paused = () => (typeof cityPaused !== 'undefined' && cityPaused) || document.hidden || matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.motion === 'reduced' || (!focused() && (narrow.matches || performance.now() < scrollQuiet));
+  const paused = () => (typeof cityPaused !== 'undefined' && cityPaused) || document.hidden || matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.motion === 'reduced' || (!focused() && ((narrow.matches && !gridOpen()) || performance.now() < scrollQuiet));
   const focused = () => !!(document.body && document.body.classList && document.body.classList.contains('city-focus'));
+  const gridOpen = () => !!(document.body && document.body.classList && document.body.classList.contains('finance-grid-open'));
 
   function draw(budgetEnd) {
     S = baseScale() * zoom(); Sd = S * dpr; lw = lineWidth(Sd);
