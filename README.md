@@ -24,7 +24,9 @@ The live app's access policy is separate from this repository. A public reposito
 - Savings goals and weekly report cards.
 - Restock countdowns and shopping lists; saved deals, coupons, rebates and cashback tracking.
 - Opt-in local store APIs (Kroger and authorized JSON feeds), up to 10 exact-product target watches, visible/unlocked refresh and OpenAI-compatible AI discount comparisons. See [API connections](API-CONNECTIONS.md).
-- Investment tracking and limited crypto quotes. No connected bank or payroll feeds.
+- Investment tracking and limited crypto quotes. No payroll feeds.
+- **Finance grid** in the pull-down panel (**My week ▾ → Finances · full grid**): a live tile grid over the city with balances, take-home, spending, budget, hours, categories, goals and investments.
+- **Bank linking (experimental, opt-in, Android and Linux apps):** read-only balances and transactions through SimpleFIN. See [API connections](API-CONNECTIONS.md#bank-linking-simplefin-experimental).
 - Original Canvas 2D isometric night city in grey line art: low-rise blocks, glass towers, palms, forests, marina and port. An elevated metro runs from the city across a gorge bridge to a farming village. Also bubble tab transitions, themes, and pause/reduced-motion controls.
 - AES-GCM vault encryption, encrypted device storage, encrypted backups and offline synchronization.
 

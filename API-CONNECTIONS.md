@@ -35,6 +35,22 @@ All fields are required. `regularPrice` may be null if unknown; otherwise it mus
 
 The app shows shelf price, source, size, location, observation time and supplied terms. Expired and stale cached prices are excluded from connected recommendations. A supplied regular price allows an explicit markdown calculation; no regular price means no claimed discount. Kroger does not provide offer expiry through this adapter; verify checkout conditions. Changing an API-linked watch's name/store/variant detaches its automated link to avoid comparing different products.
 
+## Bank linking (SimpleFIN, experimental)
+
+Android and Linux apps only. Shiftwise reads balances and transactions through the open [SimpleFIN protocol](https://www.simplefin.org/protocol.html). SimpleFIN is read-only: it cannot move money, and Shiftwise never sees bank passwords.
+
+1. At a SimpleFIN server, for example [SimpleFIN Bridge](https://beta-bridge.simplefin.org/) (separate company, paid subscription), connect your banks.
+2. Create a **setup token** for a new app there and copy it.
+3. In Shiftwise open **My week ▾**, set **View** to **Finances · full grid**, choose **Link bank accounts**, paste the token and confirm the server name.
+
+The token is the base64 of a claim URL. Shiftwise sends one `POST` to it (only public HTTPS hosts are accepted) and stores the returned access URL in the encrypted vault. Updates call `GET <access URL>/accounts?version=2&pending=1&start-date=…` with the URL's credentials moved into a Basic `Authorization` header; redirects are refused and responses are capped at 3 MB. The first update asks for 90 days (SimpleFIN's maximum per request); later updates overlap the previous one by 5 days. Protocol v1 and v2 responses are accepted. SimpleFIN `errlist` messages are shown on the Accounts tile.
+
+Updates run at most once an hour, only while the app is open and unlocked: on **Refresh**, or automatically when the finance grid opens and the last update is over 6 hours old. A `402` means the SimpleFIN subscription needs payment; a `403` means access was revoked (unlink and connect again with a new token). **Unlink** deletes the access key and downloaded data; also disable the connection at your SimpleFIN server.
+
+Android uses Capacitor's native HTTP helper; Linux uses the app's main-process transport (`/api/bank`). The website does not offer bank linking, so access keys never pass through a server.
+
+**Status:** tested against simulated SimpleFIN responses only. Real bank connectivity has not yet been tested.
+
 ## AI
 
 Use any API implementing OpenAI-compatible **Chat Completions**: enter the full `/v1/chat/completions` endpoint, API key, and an exact model name supported by your provider. OpenAI is prefilled; no model is hardcoded. For Ollama on Linux use `http://127.0.0.1:11434/v1/chat/completions` on the same computer, or a numeric LAN IP for another computer. Android connections require HTTPS, including a trusted HTTPS gateway for a local model. Do not disable certificate verification.

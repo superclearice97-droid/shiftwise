@@ -4,7 +4,7 @@ Version 0.2.1 — October 12, 2026. This describes the current app code and know
 
 ## What you enter
 
-Shiftwise handles work shifts, pay settings, expenses, goals, household supplies, saved offers and investment entries you choose to record. It has no bank or payroll connection. Daily receipts and spending suggestions are computed locally from your entered expenses. The app does not send those entries to an AI provider.
+Shiftwise handles work shifts, pay settings, expenses, goals, household supplies, saved offers and investment entries you choose to record. It has no payroll connection. Optional, read-only bank linking through SimpleFIN is available in the Android and Linux apps (see “Optional bank linking”). Daily receipts and spending suggestions are computed locally from your entered expenses. The app does not send those entries to an AI provider.
 
 ## Storage and synchronization
 
@@ -21,7 +21,7 @@ The Android app (APK) and the Linux app (AppImage, zip, deb, pacman) work only o
 - When you export a backup or a restock reminder on Android, the system share sheet opens and you choose where the file goes (for example Files or Drive). That destination's terms then apply to the file. Backups are encrypted; calendar reminder files are not.
 - Live crypto prices are off by default. If you turn them on (Appearance & app), the app asks Coinbase's public price service directly for the coin symbols you track, such as BTC. Only the symbols are sent, never amounts, balances or other records. Coinbase receives your device's internet address and request timing, as with any website. You can turn this off at any time.
 - Links to stores and offers open in your normal browser.
-- The apps contain no advertising, analytics, crash reporting, tracking or automatic update checks. The Linux renderer blocks external requests except the optional crypto lookup; configured store and AI APIs use a validated native transport. Neither app requests camera, microphone, location, contacts or storage permissions. The Android app declares internet access for optional quote, store and AI requests and outside links.
+- The apps contain no advertising, analytics, crash reporting, tracking or automatic update checks. The Linux renderer blocks external requests except the optional crypto lookup; configured store and AI APIs and optional bank linking use a validated native transport. Neither app requests camera, microphone, location, contacts or storage permissions. The Android app declares internet access for optional quote, store, AI and bank-linking requests and outside links.
 - The same 18-or-older self-declaration applies when creating a vault. The age you enter is checked on the device and not stored.
 
 ## Other services (website)
@@ -39,6 +39,19 @@ New vault setup requires an 18-or-older self-declaration. It is not identity ver
 ## Contact
 
 The repository is maintained at https://github.com/superclearice97-droid/shiftwise. Use issues for nonsensitive software questions only. Do not post personal records, passphrases, account identifiers or security exploit details publicly. A verified private privacy/security contact remains an operator setup item; this notice must be updated when it is established.
+
+## Optional bank linking (experimental, Android and Linux apps)
+
+Off until you set it up in the finance grid (**My week ▾ → View → Finances · full grid → Link bank accounts**). You create a one-time setup token at a SimpleFIN server such as SimpleFIN Bridge (a separate, paid service with its own terms and privacy policy) and paste it into Shiftwise. Before anything is sent, Shiftwise names the server and asks you to confirm.
+
+- **What is sent:** the setup token, once, to the server it names (to receive an access key), and afterwards that access key with each balance request. Nothing from your Shiftwise records is sent.
+- **What is received:** account names, institution names, balances, available balances and up to 90 days of transactions (descriptions, amounts and dates, including pending items) for the banks you linked at SimpleFIN.
+- **Where it is kept:** the access key, accounts and up to 120 days of transactions are stored in your encrypted vault and included in encrypted backups. Shiftwise never receives your bank username or password, and SimpleFIN cannot move money.
+- **When it runs:** only while the app is open and unlocked, at most about once an hour (SimpleFIN asks apps to stay within roughly 24 requests a day), automatically when the finance grid opens and the last update is over 6 hours old, or when you tap Refresh. There is no background or closed-app polling.
+- **The website** does not offer bank linking, so bank access never passes through a Shiftwise server.
+- **Stopping:** **Unlink** deletes the access key and all downloaded bank data from Shiftwise. Also disable the Shiftwise connection at your SimpleFIN server to end access there.
+
+The finance grid is drawn on your device from your records and these downloads; it sends nothing. Bank figures can lag your bank or be incomplete, and the 30-day balance line is rebuilt from downloaded transactions.
 
 ## Optional store and AI API connections
 
