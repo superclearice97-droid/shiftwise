@@ -5,6 +5,7 @@ const {app, BrowserWindow, protocol, shell, session, Menu} = require('electron')
 const path = require('node:path');
 const fs = require('node:fs');
 const DealAPI = require('../www/deal-api.js');
+const BankAPI = require('../www/bank-api.js');
 
 const WWW = path.join(__dirname, '..', 'www');
 const ORIGIN = 'app://shiftwise';
@@ -27,6 +28,13 @@ function serve() {
         const raw=await request.text();if(raw.length>200000)return Response.json({error:'Request too large'}, {status:413});
         const result=await DealAPI.run(JSON.parse(raw), {device:true}, globalThis.fetch);
         return Response.json(result, {headers:{'cache-control':'no-store'}});
+      } catch(e) {return Response.json({error:e.message}, {status:400,headers:{'cache-control':'no-store'}});}
+    }
+    if (url.pathname === '/api/bank') {
+      if (request.method !== 'POST') return Response.json({error:'Method not allowed'}, {status:405});
+      try {
+        const raw=await request.text();if(raw.length>10000)return Response.json({error:'Request too large'}, {status:413});
+        return Response.json(await BankAPI.run(JSON.parse(raw), globalThis.fetch), {headers:{'cache-control':'no-store'}});
       } catch(e) {return Response.json({error:e.message}, {status:400,headers:{'cache-control':'no-store'}});}
     }
     const rel = decodeURIComponent(url.pathname === '/' ? '/index.html' : url.pathname);
