@@ -16,7 +16,7 @@ function makeDevice(){
  sandbox.fetch=async (_url,options={})=>{if(!navigator.onLine)throw Error('offline');if(options.method==='PUT'){state.puts++;if(state.failPut)throw Error('temporarily unavailable');const body=JSON.parse(options.body);assert.equal(body.data.format,'shiftwise-e2ee');assert(!JSON.stringify(body).includes('Private lunch'));if(body.version!==state.version)return response({error:'conflict'},409);state.payload=copy(body.data);state.version++;return response({version:state.version,userId:state.user})}state.gets++;return response({data:copy(state.payload),version:state.version,userId:state.user})};
  function response(value,status=200){return {ok:status===200,status,redirected:false,headers:{get:()=> 'application/json'},json:async()=>copy(value)}}
  vm.createContext(sandbox);
- for(const file of ['deal-api.js','core.js','crypto.js','storage.js','app.js','features.js','investments.js','discounts.js','offers.js','sync.js','experience.js','restock.js','connections.js'])vm.runInContext(fs.readFileSync('public/'+file,'utf8'),sandbox);
+ for(const file of ['deal-api.js','bank-api.js','core.js','crypto.js','storage.js','app.js','features.js','investments.js','discounts.js','offers.js','sync.js','experience.js','restock.js','connections.js','finance.js'])vm.runInContext(fs.readFileSync('public/'+file,'utf8'),sandbox);
  vm.runInContext(fs.readFileSync('public/city.js','utf8').replace('initCity();',''),sandbox);
  vm.runInContext(fs.readFileSync('public/vault.js','utf8').replace('bootWithLock();',''),sandbox);
  vm.runInContext('LocalRecords.rawGet=testDiskGet;LocalRecords.rawPut=testDiskPut;',sandbox);
@@ -120,6 +120,8 @@ rejectedForm._values={passphrase,confirm:passphrase,acknowledge:'on',age:'12'};
 await rejectedForm.onsubmit({preventDefault(){},target:rejectedForm});assert.equal(state.puts,beforeReject);assert.equal(rejected.run('ready'),false);
 assert.match(rejected.elements.get('#vaultError').textContent,/18 or older/);
 await rejected.submit(passphrase,true);assert.equal(state.puts,beforeReject);assert.match(rejected.elements.get('#vaultError').textContent,/unavailable in this session/);
+// Passphrases need at least 8 characters (lowered from 16 in v0.5.0).
+const beforeShort=state.puts;await a.submit('seven77',true);assert.equal(a.run('ready'),false);assert.equal(state.puts,beforeShort);assert.match(a.elements.get('#vaultError').textContent,/at least 8 characters/);
 await a.submit(passphrase,true);assert.equal(a.run('ready'),true);assert.equal(disk.get('user-a').format,'shiftwise-e2ee');assert(!JSON.stringify(disk.get('user-a')).includes('Private lunch'));assert.equal(state.payload.format,'shiftwise-e2ee');assert.equal((await serverData(a)).expenses.length,1);assert.equal((await serverData(a)).supplies[0].name,'Private toothpaste');assert(!JSON.stringify(state.payload).includes('Private toothpaste'));assert.equal((await serverData(a)).dealItems[0].name,'Private wish item');assert(!JSON.stringify(state.payload).includes('Private wish item'));assert(!JSON.stringify(state.payload).includes('PRIVATE RECEIPT'));assert.equal((await serverData(a)).savingOffers[0].notes,'PRIVATE RECEIPT');
 for(const tab of ['overview','shifts','money','goals','review','appearance','settings','investments','discounts','restock'])a.run(`tab='${tab}';render()`);
 a.run("tab='overview';navigator.onLine=false;data.expenses.push({id:'offline',name:'Bus',category:'Transport',amount:3,date:'2026-09-22'});save()");await a.run('writeQueue');assert.equal((await serverData(a)).expenses.length,1);
@@ -136,4 +138,5 @@ b.sandbox.navigator.onLine=false;await b.run('lockVault()');assert.equal(b.run('
 state.user='user-b';b.sandbox.navigator.onLine=true;const puts=state.puts;await b.run('syncRecords()');assert.equal(state.puts,puts);assert.match(b.run('syncProblem'),/different account/);
 // Concurrent setup loses the version race without rewriting an existing device copy.
 state.user='user-c';state.payload=copy(legacy);state.version=1;const c=makeDevice();await c.run('boot()');state.version=2;await c.submit(passphrase,true);assert.equal(c.run('ready'),false);assert.equal(disk.has('user-c'),false);
+state.user='user-eight';state.payload=null;state.version=0;const eight=makeDevice();await eight.run('boot()');await eight.submit('eight888',true);assert.equal(eight.run('ready'),true,'an 8-character passphrase creates a vault');
 console.log('PASS: legacy migration, encrypted account and offline writes, wrong-passphrase protection, offline unlock, encrypted merge/conflicts/retry, memory lock, account isolation and concurrent setup protection.');

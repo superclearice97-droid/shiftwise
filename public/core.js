@@ -2,7 +2,7 @@
 (function(root){
  const clone=v=>v===undefined?undefined:JSON.parse(JSON.stringify(v));
  const equal=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
- const collections=['shifts','supplies','expenses','goals','weeks','contributions','investments','balanceHistory','dealItems','dealPrices','dealReads','savingOffers','connectedOffers','celebrated'];
+ const collections=['shifts','supplies','expenses','goals','weeks','contributions','investments','balanceHistory','dealItems','dealPrices','dealReads','savingOffers','connectedOffers','celebrated','bankAccounts','bankTransactions'];
  function merge(base,local,remote,choices={}){
   const conflicts=[];
   function value(b,l,r,path){
@@ -54,9 +54,9 @@
   const s=data.settings,n=(v,min=0,max=1e9)=>typeof v==='number'&&Number.isFinite(v)&&v>=min&&v<=max,txt=(v,max=200)=>typeof v==='string'&&v.length<=max;
   for(const key of ['rate','ot','mult','credit','otherIncome','w4ded','extra','state','local','retire','benefits','post','ytd','hourGoal','budget'])if(!n(s[key]))return false;
   if(s.rate<=0||s.ot<=0||s.hourGoal<=0||s.budget<=0||!['single','joint'].includes(s.status))return false;
-  for(const key of ['shifts','supplies','expenses','goals','weeks','contributions','investments','balanceHistory','dealItems','dealPrices','dealReads','savingOffers','connectedOffers','celebrated']){
+  for(const key of collections){
    const list=data[key]??[];if(!Array.isArray(list)||list.length>25000||new Set(list.map(x=>x?.id)).size!==list.length)return false;
-   if(list.some(x=>!x||!txt(x.id,key==='connectedOffers'?201:100)||!x.id))return false;
+   if(list.some(x=>!x||!txt(x.id,key==='connectedOffers'?201:key==='bankTransactions'?351:key==='bankAccounts'?150:100)||!x.id))return false;
   }
   if(data.shifts.some(x=>!Number.isFinite(Date.parse(x.start))||!Number.isFinite(Date.parse(x.end))||Date.parse(x.end)<=Date.parse(x.start)||!n(x.break)||x.break>=(Date.parse(x.end)-Date.parse(x.start))/60000))return false;
   if(data.expenses.some(x=>!txt(x.name)||!txt(x.category)||!/^\d{4}-\d{2}-\d{2}$/.test(x.date)||!n(x.amount,.01)))return false;
@@ -72,6 +72,9 @@
   if(data.dealConnections&&(!root.DealAPI||!root.DealAPI.validSettings(data.dealConnections)))return false;
   if((data.dealItems||[]).some(x=>(x.connectionId!==undefined&&(!txt(x.connectionId,100)||!txt(x.productId,100)))))return false;
   if((data.connectedOffers||[]).some(x=>!txt(x.productId,100)||!txt(x.connectionId,100)||!txt(x.name)||!x.name.trim()||!txt(x.store,100)||!txt(x.variant)||!n(x.price)||!(x.regularPrice===null||n(x.regularPrice)&&x.regularPrice>=x.price)||x.currency!=='USD'||!txt(x.url,2000)||!safeDealUrl(x.url)||!txt(x.terms,3000)||!txt(x.locationId,100)||!/^\d{5}$/.test(x.zip)||!Number.isFinite(Date.parse(x.observedAt))||!Number.isFinite(Date.parse(x.retrievedAt))||!(x.expiresAt===null||Number.isFinite(Date.parse(x.expiresAt)))))return false;
+  if(data.bankLink&&(!root.BankAPI||!root.BankAPI.validLink(data.bankLink)))return false;
+  if((data.bankAccounts||[]).some(x=>!txt(x.org)||!txt(x.name)||!/^[A-Z]{3}$/.test(x.currency)||typeof x.balance!=='number'||!Number.isFinite(x.balance)||!(x.available===null||typeof x.available==='number'&&Number.isFinite(x.available))||!Number.isFinite(Date.parse(x.balanceDate))))return false;
+  if((data.bankTransactions||[]).some(x=>!txt(x.accountId,150)||!(data.bankAccounts||[]).some(a=>a.id===x.accountId)||typeof x.amount!=='number'||!Number.isFinite(x.amount)||!txt(x.description)||typeof x.pending!=='boolean'||!Number.isFinite(Date.parse(x.posted))))return false;
   if(data.discountPreferences&&(!txt(data.discountPreferences.zip,5)||!/^\d{5}$/.test(data.discountPreferences.zip)))return false;
   const offerDate=v=>v===''||(typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v)&&Number.isFinite(Date.parse(v))&&new Date(v).toISOString().slice(0,10)===v);
   if((data.savingOffers||[]).some(x=>!txt(x.title)||!x.title.trim()||!txt(x.store,100)||!x.store.trim()||!['coupon','cashback','rebate','other'].includes(x.type)||!txt(x.benefit,300)||!x.benefit.trim()||!txt(x.code,100)||!txt(x.url,2000)||!safeDealUrl(x.url)||!txt(x.terms,3000)||!txt(x.notes,3000)||!offerDate(x.expires)||!offerDate(x.claimBy)||!offerDate(x.receivedOn)||!['saved','pending','received','closed'].includes(x.status)||!n(x.expected)||!n(x.actual)||typeof x.shareable!=='boolean'||(x.status==='received'&&!x.receivedOn)))return false;
