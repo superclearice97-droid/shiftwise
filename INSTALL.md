@@ -25,7 +25,7 @@ Choose one:
 
 ## First launch
 
-1. Make up a **vault passphrase** of at least 16 characters, such as four or five random words. Write it down somewhere safe. **It cannot be reset.**
+1. Make up a **vault passphrase** of at least 8 characters. Longer is stronger: three or four random words are a good choice. Write it down somewhere safe. **It cannot be reset.**
 2. Enter your age (you must be 18 or older) and tick the box to confirm you saved the passphrase.
 3. Your records are encrypted and stay on this device only.
 
