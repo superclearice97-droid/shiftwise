@@ -121,3 +121,10 @@ body:not(.city-focus):not(.vault-locked) main .card,body:not(.city-focus):not(.v
 @media(max-width:1100px){.fin-grid{grid-template-columns:repeat(6,minmax(0,1fr))}.fin-kpi,.fin-third,.fin-side{grid-column:span 3}.fin-wide,.fin-half{grid-column:span 6}}
 @media(max-width:760px){.city-panel.finance-mode{left:10px;right:10px;width:auto;top:98px;bottom:10px;padding:12px}.city-panel.finance-mode .inspector-select{max-width:none}.fin-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.fin-kpi{grid-column:span 1;padding:11px}.fin-kpi strong{font-size:19px}.fin-wide,.fin-half,.fin-third,.fin-side{grid-column:span 2}.fin-tile{padding:11px 12px}.fin-chart text{font-size:19px}}
 html[data-motion=reduced] .finance-mode #citySummary{animation:none!important}
+/* Android 15+ draws the app edge to edge: keep the top bar and panel clear of the status and gesture bars.
+   Capacitor's SystemBars injects --safe-area-inset-*; env() covers other browsers; both fall back to 0. */
+:root{--sw-top:var(--safe-area-inset-top,env(safe-area-inset-top,0px));--sw-bottom:var(--safe-area-inset-bottom,env(safe-area-inset-bottom,0px))}
+body>aside{padding-top:calc(10px + var(--sw-top))}
+.city-panel{top:calc(76px + var(--sw-top));max-height:calc(100dvh - 96px - var(--sw-top) - var(--sw-bottom))}
+.city-panel.finance-mode{bottom:calc(18px + var(--sw-bottom));max-height:none}
+@media(max-width:760px){body>aside{padding-top:calc(9px + var(--sw-top))}.city-panel{top:calc(98px + var(--sw-top));max-height:calc(100dvh - 125px - var(--sw-top) - var(--sw-bottom))}.city-panel.finance-mode{top:calc(98px + var(--sw-top));bottom:calc(10px + var(--sw-bottom))}}
