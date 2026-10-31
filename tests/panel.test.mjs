@@ -17,4 +17,11 @@ assert.equal(t.store.get('shiftwise-panel-view'),'');assert.equal(t.el('#cityMen
 t=load('');assert.equal(t.run('cityPanelMode'),'workspace');assert.equal(t.el('#cityPanel').hidden,false,'desktop opens the compact panel as before');
 t=load('finance',{narrow:true});assert.equal(t.run('cityPanelMode'),'finance');assert.equal(t.el('#cityPanel').hidden,true,'phones start with the panel tucked away');
 assert.equal(load(undefined,{blocked:true}).run('cityPanelMode'),'finance','blocked storage still shows the grid');
+// Performance: the grid is not built while the panel is closed, and unchanged output is not rewritten.
+t=load(undefined,{narrow:true});let builds=0,writes=0,html='<div>grid</div>';t.ctx.ready=true;t.ctx.reducedMotion=()=>false;t.ctx.financeGrid=()=>{builds++;return html};
+const summary=t.el('#citySummary');let inner='';Object.defineProperty(summary,'innerHTML',{get:()=>inner,set:v=>{writes++;inner=v}});
+t.run('updateCityPanel();updateCityPanel()');assert.equal(builds,0,'closed panel skips the grid');assert.equal(inner,'');writes=0;
+t.run('toggleCityPanel(true)');assert.equal(builds,1);assert.equal(writes,1);assert.equal(inner,html);
+t.run('updateCityPanel();updateCityPanel()');assert.equal(builds,3);assert.equal(writes,1,'identical grid is not re-inserted');
+html='<div>changed</div>';t.run('updateCityPanel()');assert.equal(writes,2);assert.equal(inner,html);
 console.log('PASS: finance grid is the default pull-down view, remembered per device, and never covers the desktop workspace at launch.');
