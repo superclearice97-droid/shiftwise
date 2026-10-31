@@ -1,3 +1,14 @@
+# Shiftwise v0.5.0 — finance grid and bank linking (experimental)
+
+- **Finance grid.** Pull down **My week ▾** and set **View** to **Finances · full grid**. It stays your pull-down view (remembered on this device) until you pick another view; choosing a tab tucks it away. The panel opens out into a live, glowing tile grid over the city: linked balance and its 30-day trail, take-home this week, spending against your budget, take-home vs spending over 8 weeks, daily money out, hours, where your money went this month, goals, investments, accounts and recent bank activity. It updates as your records change. The city stays visible behind the tiles, and on phones the train keeps running behind the grid (it still pauses while you scroll and with Pause motion or reduced motion). On Linux, hover a bar or point for its value.
+- **Bank linking — experimental, opt-in, Android and Linux only.** Connect your banks at a SimpleFIN server such as SimpleFIN Bridge (a separate, paid service), then paste its one-time setup token into **Link bank accounts**. Shiftwise reads balances and transactions only; SimpleFIN cannot move money and Shiftwise never sees your bank password. The access key and downloads stay in your encrypted vault. Updates run at most once an hour and only while the app is open and unlocked. **Unlink** deletes everything it downloaded. This has been tested with simulated SimpleFIN responses only, not yet with a real bank account. See [API-CONNECTIONS.md](API-CONNECTIONS.md#bank-linking-simplefin-experimental) and PRIVACY.md.
+
+Updates from 0.3.0 or later install normally. Updating from 0.2.x on Android still needs the backup, uninstall and restore steps below.
+
+Android signing certificate SHA-256: `70:A9:90:B5:3A:85:13:98:D2:27:02:8B:C7:5A:98:B6:51:12:71:EF:F9:77:63:1B:CF:DF:AD:33:09:D9:89:3E`
+
+---
+
 # Shiftwise v0.4.2 — smoother scrolling
 
 - **Much smoother scrolling and animation.** The city background no longer redraws behind the app while you scroll, and on phones it holds still behind your records (where it was hidden anyway) and comes alive in **Focus** view. Removed blur effects that were invisible but re-rendered on every frame. In a simulated slow-phone test, scrolling went from about 7 to a steady 60 frames per second (the test's limit).
