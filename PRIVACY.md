@@ -42,7 +42,7 @@ The repository is maintained at https://github.com/superclearice97-droid/shiftwi
 
 ## Optional bank linking (experimental, Android and Linux apps)
 
-Off until you set it up in the finance grid (**My week ▾ → View → Finances · full grid → Link bank accounts**). You create a one-time setup token at a SimpleFIN server such as SimpleFIN Bridge (a separate, paid service with its own terms and privacy policy) and paste it into Shiftwise. Before anything is sent, Shiftwise names the server and asks you to confirm.
+Off until you set it up in the finance grid (**Finances ▾ → Link bank accounts**). You create a one-time setup token at a SimpleFIN server such as SimpleFIN Bridge (a separate, paid service with its own terms and privacy policy) and paste it into Shiftwise. Before anything is sent, Shiftwise names the server and asks you to confirm.
 
 - **What is sent:** the setup token, once, to the server it names (to receive an access key), and afterwards that access key with each balance request. Nothing from your Shiftwise records is sent.
 - **What is received:** account names, institution names, balances, available balances and up to 90 days of transactions (descriptions, amounts and dates, including pending items) for the banks you linked at SimpleFIN.

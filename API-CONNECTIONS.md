@@ -41,7 +41,7 @@ Android and Linux apps only. Shiftwise reads balances and transactions through t
 
 1. At a SimpleFIN server, for example [SimpleFIN Bridge](https://beta-bridge.simplefin.org/) (separate company, paid subscription), connect your banks.
 2. Create a **setup token** for a new app there and copy it.
-3. In Shiftwise open **My week ▾**, set **View** to **Finances · full grid**, choose **Link bank accounts**, paste the token and confirm the server name.
+3. In Shiftwise tap **Finances ▾**, choose **Link bank accounts**, paste the token and confirm the server name.
 
 The token is the base64 of a claim URL. Shiftwise sends one `POST` to it (only public HTTPS hosts are accepted) and stores the returned access URL in the encrypted vault. Updates call `GET <access URL>/accounts?version=2&pending=1&start-date=…` with the URL's credentials moved into a Basic `Authorization` header; redirects are refused and responses are capped at 3 MB. The first update asks for 90 days (SimpleFIN's maximum per request); later updates overlap the previous one by 5 days. Protocol v1 and v2 responses are accepted. SimpleFIN `errlist` messages are shown on the Accounts tile.
 
