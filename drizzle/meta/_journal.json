@@ -15,6 +15,13 @@
       "when": 1795295400162,
       "tag": "0001_push_notifications",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1795298893196,
+      "tag": "0002_bank_connections",
+      "breakpoints": true
     }
   ]
 }

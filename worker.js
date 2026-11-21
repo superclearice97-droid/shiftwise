@@ -29,12 +29,13 @@ async function accessRequest(request,env){
  const headers=new Headers(request.headers);headers.delete('oai-authenticated-user-id');if(user)headers.set('oai-authenticated-user-id',user);
  return new Request(request,{headers});
 }
-export default {async scheduled(event,env,ctx){ctx.waitUntil(deliverPush(env).catch(()=>console.error('Push delivery failed')))},async fetch(request,env){
+export default {async scheduled(event,env,ctx){ctx.waitUntil(deliverPush(env).catch(()=>console.error('Push delivery failed')));ctx.waitUntil(syncDueBanks(env).catch(()=>console.error('Bank sync failed')))},async fetch(request,env){
  const path=new URL(request.url).pathname;
  if(env.AUTH==='cloudflare-access'&&path.startsWith('/api/')){const checked=await accessRequest(request,env);if(checked instanceof Response)return checked;request=checked}
  if(path==='/api/deals')return dealResponse(request,env);
  if(path==='/api/markets')return marketResponse(request);
  if(path==='/api/push')return pushResponse(request,env);
+ if(path==='/api/bank')return bankResponse(request,env);
  if(path==='/api/state'){
   const user=request.headers.get('oai-authenticated-user-id');if(!user)return json({error:'Sign in required'},401);
   try{
@@ -62,5 +63,5 @@ export default {async scheduled(event,env,ctx){ctx.waitUntil(deliverPush(env).ca
  }
  const key=path==='/'?'/index.html':path,asset=ASSETS[key];if(!asset)return new Response('Not found',{status:404});
  const body=asset.binary?Uint8Array.from(atob(asset.body),c=>c.charCodeAt(0)):asset.body;
- return new Response(body,{headers:{'content-type':asset.type,'cache-control':'no-cache','x-content-type-options':'nosniff','referrer-policy':'no-referrer','strict-transport-security':'max-age=31536000','content-security-policy':"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors "+(env.AUTH==='cloudflare-access'?"'self'":"'self' https://chatgpt.com https://*.chatgpt.com"),'permissions-policy':'camera=(), microphone=(), geolocation=()',...(path==='/sw.js'?{'service-worker-allowed':'/'}:{})}});
+ return new Response(body,{headers:{'content-type':asset.type,'cache-control':'no-cache','x-content-type-options':'nosniff','referrer-policy':'no-referrer','strict-transport-security':'max-age=31536000','content-security-policy':key==='/bank.html'?"default-src 'self'; script-src 'self' https://cdn.plaid.com/link/v2/stable/link-initialize.js; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-src https://cdn.plaid.com/; connect-src 'self' https://production.plaid.com/ https://sandbox.plaid.com/; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'":"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors "+(env.AUTH==='cloudflare-access'?"'self'":"'self' https://chatgpt.com https://*.chatgpt.com"),'permissions-policy':'camera=(), microphone=(), geolocation=()',...(path==='/sw.js'?{'service-worker-allowed':'/'}:{})}});
 }};

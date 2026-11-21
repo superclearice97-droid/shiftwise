@@ -63,6 +63,8 @@
   if((data.schedule||[]).some(x=>!Number.isInteger(x.day)||x.day<0||x.day>6||!clock(x.start)||!clock(x.end)||x.start===x.end||!Number.isInteger(x.break)||x.break<0||x.break>=(mins(x.end)-mins(x.start)+1440)%1440||!isDay(x.since)))return false;
   if((data.scheduleAdjust||[]).some(x=>!txt(x.name,60)||!x.name.trim()||!isDay(x.from)||!isDay(x.to)||x.to<x.from||!Number.isInteger(x.startShift)||!Number.isInteger(x.endShift)||Math.abs(x.startShift)>720||Math.abs(x.endShift)>720))return false;
   if((data.scheduleDone||[]).some(x=>!/^\d{4}-\d{2}-\d{2}:/.test(x.id)||!['worked','skipped'].includes(x.status)))return false;
+  const coord=v=>typeof v==='string'&&/^[A-Za-z0-9_-]{43}$/.test(v);
+  if(data.bankKey!==undefined&&data.bankKey!==null&&(typeof data.bankKey!=='object'||data.bankKey.publicJwk?.kty!=='EC'||data.bankKey.publicJwk.crv!=='P-256'||!coord(data.bankKey.publicJwk.x)||!coord(data.bankKey.publicJwk.y)||data.bankKey.privateJwk?.x!==data.bankKey.publicJwk.x||data.bankKey.privateJwk.y!==data.bankKey.publicJwk.y||!coord(data.bankKey.privateJwk.d)))return false;
   if(data.expenses.some(x=>!txt(x.name)||!txt(x.category)||!/^\d{4}-\d{2}-\d{2}$/.test(x.date)||!n(x.amount,.01)))return false;
   if(data.goals.some(x=>!txt(x.name)||!n(x.target,1)||!n(x.saved)|| (x.deadline&&!/^\d{4}-\d{2}-\d{2}$/.test(x.deadline))))return false;
   if((data.contributions||[]).some(x=>!txt(x.goalId,100)||!n(x.amount,.01)||!/^\d{4}-\d{2}-\d{2}$/.test(x.date)))return false;

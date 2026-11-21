@@ -4,7 +4,7 @@ Version 0.2.1 — October 12, 2026; website hosting section updated November 21,
 
 ## What you enter
 
-Shiftwise handles work shifts, your usual work schedule and schedule changes, pay settings, expenses, goals, household supplies, saved offers and investment entries you choose to record. It has no bank or payroll connection. Daily receipts and spending suggestions are computed locally from your entered expenses. The app does not send those entries to an AI provider.
+Shiftwise handles work shifts, your usual work schedule and schedule changes, pay settings, expenses, goals, household supplies, saved offers and investment entries you choose to record. It has no payroll connection. An optional, read-only bank connection on the website is described below. Daily receipts and spending suggestions are computed locally from your entered expenses. The app does not send those entries to an AI provider.
 
 ## Storage and synchronization
 
@@ -37,6 +37,21 @@ There is no app-owned advertising tracker, session-replay SDK, marketing-email s
 Off until you tap **Remind me after each shift** and allow notifications. Your phone then works out reminders for your planned shifts over the next three weeks and encrypts each reminder's text on the phone to that phone's own push subscription, using the standard Web Push encryption. The Shiftwise server stores your phone's push address (an Apple, Google, Mozilla or Microsoft URL), your Access user ID, the time each reminder is due and the encrypted text. It cannot read the text, but the due times reveal when your planned shifts end. At the due time the server sends the encrypted reminder to your phone's push service, for example Apple Push Notification service, which delivers it. That push service sees the size and timing of each reminder and that it comes from your Shiftwise site, under its own privacy terms. Reminder text can appear on your lock screen, depending on your phone's notification settings.
 
 Sent reminders are deleted from the server. So are reminders more than an hour overdue, the queued reminders for a phone you turn reminders off on, and the push address and reminders of a phone the push service reports as gone. Turn reminders off with **Turn off reminders** on the Work log, or in your phone's notification settings. The Android and Linux apps do not offer reminders.
+
+## Bank connections (website, optional)
+
+Off until you tap **Connect a bank** on the Money tab. Bank connections use Plaid, Inc. You sign in to your bank inside Plaid's window, so Shiftwise never receives your bank username or password. Shiftwise asks Plaid only for **transactions** (the read-only Transactions product) and cannot move money, pay bills or see your bank password. Plaid's collection and use of your data is covered by Plaid's End User Privacy Policy: https://plaid.com/legal/#end-user-privacy-policy. Plaid shows its own consent screen before you connect.
+
+What Shiftwise stores and where:
+- **In your vault (encrypted with your passphrase):** a private key for receiving bank data, and an expense record for each posted purchase. Each record holds the merchant name, amount, date, a spending category and the bank's name. Transfers, income, credit-card payments, refunds and pending charges are not added.
+- **On the Shiftwise server:**
+  - Plaid's access token for each connection, encrypted with a server key (`BANK_TOKEN_KEY`).
+  - Plaid's item ID, the bank's name, and the sync position and status.
+  - Your vault's *public* key.
+  - Batches of new transactions waiting to be imported. Each batch keeps only the transaction ID, date, merchant name, amount, pending status and category, and is encrypted to your vault's public key so the server can't read it once stored. A batch is deleted as soon as your unlocked vault imports it.
+- **In transit:** about every 6 hours (or when you tap **Check for new transactions**) the server asks Plaid for new transactions. It handles them in readable form briefly while reducing and encrypting them. Cloudflare, as host, processes that traffic.
+
+Removing a connection asks Plaid to end Shiftwise's access and deletes the stored access token. Purchases already imported stay in your records until you delete them. On the free Plaid trial, removing a connection does not free a connection slot. The Android and Linux apps do not offer bank connections.
 
 ## Retention and control
 

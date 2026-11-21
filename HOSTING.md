@@ -52,6 +52,18 @@ Needs iOS 16.4 or later and Shiftwise opened from the Home Screen. On the **Work
 
 The deploy workflow creates the signing key for notifications on its first run and stores it as a Cloudflare secret. You don't need to set anything up. Reminders go out within 5 minutes of their time. The phone uploads three weeks of reminders whenever it's unlocked, so open Shiftwise at least every few weeks. Read the phone-reminder section of PRIVACY.md for what the server and Apple can see.
 
+## 7. Bank transactions through Plaid (optional)
+
+Your free Plaid trial allows **10 bank connections in total, and removing one does not free its slot.** So test with Plaid's fake Sandbox bank first, then connect your real banks once.
+
+1. In the Plaid dashboard, open **Developers → Keys**. In GitHub, add three **Secrets**: `PLAID_CLIENT_ID`, `PLAID_SANDBOX_SECRET` and `PLAID_PRODUCTION_SECRET`. Never paste them anywhere else.
+2. In the Plaid dashboard, under **Developers → API → Allowed redirect URIs**, add `https://shiftwise.<your-subdomain>.workers.dev/bank.html`.
+3. In GitHub, add the **Variable** `PLAID_ENV` with the value `sandbox`, and run the deploy workflow.
+4. On the **Money** tab, tap **Connect a bank**. In Plaid's window, pick any bank and sign in with Plaid's test login (username `user_good`, password `pass_good`). Test purchases should appear in your spending within a minute or two. Remove the test connection afterwards. Sandbox connections don't count toward your trial's 10.
+5. Change `PLAID_ENV` to `production` and run the deploy workflow again. Connect Huntington, then Wintrust. Some banks need approval in Plaid's dashboard first (its OAuth institutions page shows the status).
+
+Shiftwise checks for new transactions about every 6 hours. The phone imports them the next time you unlock. Purchases are added to your spending; transfers, income, credit-card payments, refunds and pending charges are left out. You can change any purchase's category, and later updates keep your choice. Cash App isn't available through Plaid, so add Cash App spending by hand. Read the bank-connection section of PRIVACY.md first.
+
 ## Limits and notes
 
 - **Existing records.** A new vault on this site starts empty. Records in the Android or Linux apps or on the old Sites website don't move over automatically, and encrypted backups from them can't be restored into a vault made with a different passphrase setup.

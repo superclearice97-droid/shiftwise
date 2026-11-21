@@ -75,14 +75,14 @@ assert.equal(sqlite.prepare('SELECT COUNT(*) AS n FROM push_queue').get().n,1);
 assert(!JSON.stringify(sqlite.prepare('SELECT * FROM push_queue').all()).includes('Shift check-in'));
 
 // The scheduled run sends reminders once they are due.
-await worker.scheduled({},env,{waitUntil:p=>p});await new Promise(r=>setTimeout(r,10));assert.equal(sent.length,1);
+{const all=[];await worker.scheduled({},env,{waitUntil:p=>all.push(p)});await Promise.all(all)}assert.equal(sent.length,1);
 sqlite.prepare('UPDATE push_queue SET send_at = ?').run(Date.now()-1000);
-let pending;await worker.scheduled({},env,{waitUntil:p=>pending=p});await pending;
+const tick=async()=>{const all=[];await worker.scheduled({},env,{waitUntil:p=>all.push(p)});await Promise.all(all)};await tick();
 assert.equal(sent.length,2);assert.match(sent[1].text,/Worked Mon/);assert.equal(sqlite.prepare('SELECT COUNT(*) AS n FROM push_queue').get().n,0);
 
 // Temporary push-service errors are retried; reminders over an hour late are dropped.
 reply=503;await call('PUT',{endpoint,items:[await item(Date.now())]});assert.equal(sqlite.prepare('SELECT COUNT(*) AS n FROM push_queue').get().n,1);
-sqlite.prepare('UPDATE push_queue SET send_at = ?').run(Date.now()-3700000);await worker.scheduled({},env,{waitUntil:p=>pending=p});await pending;
+sqlite.prepare('UPDATE push_queue SET send_at = ?').run(Date.now()-3700000);await tick();
 assert.equal(sqlite.prepare('SELECT COUNT(*) AS n FROM push_queue').get().n,0);
 
 // A push address reported gone is forgotten with its queue.

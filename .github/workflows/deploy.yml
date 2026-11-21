@@ -19,6 +19,7 @@ jobs:
       DB_ID: ${{ vars.CLOUDFLARE_D1_DATABASE_ID }}
       TEAM: ${{ vars.CLOUDFLARE_ACCESS_TEAM_DOMAIN }}
       AUD: ${{ vars.CLOUDFLARE_ACCESS_AUD }}
+      PLAID_ENV: ${{ vars.PLAID_ENV }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -36,11 +37,29 @@ jobs:
           args=()
           if [ -n "$TEAM" ] && [ -n "$AUD" ]; then args=(--var "ACCESS_TEAM_DOMAIN:$TEAM" --var "ACCESS_AUD:$AUD")
           else echo "::warning::Access sign-in is not configured yet; the app's data endpoints will refuse requests until it is (HOSTING.md step 4)."; fi
+          if [ -n "$PLAID_ENV" ]; then
+            [[ "$PLAID_ENV" =~ ^(sandbox|production)$ ]] || { echo "::error::PLAID_ENV must be sandbox or production"; exit 1; }
+            args+=(--var "PLAID_ENV:$PLAID_ENV")
+          fi
           npx --yes wrangler@4.158.0 deploy "${args[@]}"
-      - name: Create the phone-notification signing key (first deploy only)
-        # The key is generated here and piped straight into a Cloudflare secret; it is never printed or stored in GitHub.
+      - name: Create server keys (first deploy only)
+        # Keys are generated here and piped straight into Cloudflare secrets; they are never printed or stored in GitHub.
+        # VAPID_PRIVATE_KEY signs phone notifications; BANK_TOKEN_KEY encrypts stored Plaid access tokens.
         run: |
           secrets=$(npx --yes wrangler@4.158.0 secret list --format json) || { echo "::error::Could not list Worker secrets"; exit 1; }
           if ! grep -q '"VAPID_PRIVATE_KEY"' <<<"$secrets"; then
             node -e "crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign']).then(k=>crypto.subtle.exportKey('jwk',k.privateKey)).then(j=>process.stdout.write(JSON.stringify({kty:j.kty,crv:j.crv,d:j.d,x:j.x,y:j.y})))" | npx --yes wrangler@4.158.0 secret put VAPID_PRIVATE_KEY
           fi
+          if ! grep -q '"BANK_TOKEN_KEY"' <<<"$secrets"; then
+            node -e "process.stdout.write(crypto.getRandomValues(Buffer.alloc(32)).toString('base64url'))" | npx --yes wrangler@4.158.0 secret put BANK_TOKEN_KEY
+          fi
+      - name: Copy Plaid keys to the Worker
+        if: env.PLAID_ENV != ''
+        env:
+          PLAID_CLIENT_ID: ${{ secrets.PLAID_CLIENT_ID }}
+          PLAID_SANDBOX_SECRET: ${{ secrets.PLAID_SANDBOX_SECRET }}
+          PLAID_PRODUCTION_SECRET: ${{ secrets.PLAID_PRODUCTION_SECRET }}
+        run: |
+          if [ "$PLAID_ENV" = production ]; then secret="$PLAID_PRODUCTION_SECRET"; else secret="$PLAID_SANDBOX_SECRET"; fi
+          [ -n "$PLAID_CLIENT_ID" ] && [ -n "$secret" ] || { echo "::error::Add the PLAID_CLIENT_ID and Plaid $PLAID_ENV secret to the repository secrets (HOSTING.md step 7)"; exit 1; }
+          CLIENT="$PLAID_CLIENT_ID" SECRET="$secret" node -e "process.stdout.write(JSON.stringify({PLAID_CLIENT_ID:process.env.CLIENT,PLAID_SECRET:process.env.SECRET}))" | npx --yes wrangler@4.158.0 secret bulk

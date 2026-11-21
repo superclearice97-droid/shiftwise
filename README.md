@@ -26,7 +26,7 @@ The live app's access policy is separate from this repository. A public reposito
 - Savings goals and weekly report cards.
 - Restock countdowns and shopping lists; saved deals, coupons, rebates and cashback tracking.
 - Opt-in local store APIs (Kroger and authorized JSON feeds), up to 10 exact-product target watches, visible/unlocked refresh and OpenAI-compatible AI discount comparisons. See [API connections](API-CONNECTIONS.md).
-- Investment tracking and limited crypto quotes. No connected bank or payroll feeds.
+- Investment tracking and limited crypto quotes. No payroll feeds. Optional read-only bank transactions through Plaid on the self-hosted website (see PRIVACY.md).
 - Original Canvas 2D isometric night city in grey line art: low-rise blocks, glass towers, palms, forests, marina and port. An elevated metro runs from the city across a gorge bridge to a farming village. Also bubble tab transitions, themes, and pause/reduced-motion controls.
 - AES-GCM vault encryption, encrypted device storage, encrypted backups and offline synchronization.
 
