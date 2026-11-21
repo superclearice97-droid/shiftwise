@@ -4,7 +4,7 @@ Version 0.2.1 — October 12, 2026; website hosting section updated November 21,
 
 ## What you enter
 
-Shiftwise handles work shifts, pay settings, expenses, goals, household supplies, saved offers and investment entries you choose to record. It has no bank or payroll connection. Daily receipts and spending suggestions are computed locally from your entered expenses. The app does not send those entries to an AI provider.
+Shiftwise handles work shifts, your usual work schedule and schedule changes, pay settings, expenses, goals, household supplies, saved offers and investment entries you choose to record. It has no bank or payroll connection. Daily receipts and spending suggestions are computed locally from your entered expenses. The app does not send those entries to an AI provider.
 
 ## Storage and synchronization
 

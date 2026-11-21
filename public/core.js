@@ -2,7 +2,7 @@
 (function(root){
  const clone=v=>v===undefined?undefined:JSON.parse(JSON.stringify(v));
  const equal=(a,b)=>JSON.stringify(a)===JSON.stringify(b);
- const collections=['shifts','supplies','expenses','goals','weeks','contributions','investments','balanceHistory','dealItems','dealPrices','dealReads','savingOffers','connectedOffers','celebrated'];
+ const collections=['shifts','schedule','scheduleAdjust','scheduleDone','supplies','expenses','goals','weeks','contributions','investments','balanceHistory','dealItems','dealPrices','dealReads','savingOffers','connectedOffers','celebrated'];
  function merge(base,local,remote,choices={}){
   const conflicts=[];
   function value(b,l,r,path){
@@ -54,11 +54,15 @@
   const s=data.settings,n=(v,min=0,max=1e9)=>typeof v==='number'&&Number.isFinite(v)&&v>=min&&v<=max,txt=(v,max=200)=>typeof v==='string'&&v.length<=max;
   for(const key of ['rate','ot','mult','credit','otherIncome','w4ded','extra','state','local','retire','benefits','post','ytd','hourGoal','budget'])if(!n(s[key]))return false;
   if(s.rate<=0||s.ot<=0||s.hourGoal<=0||s.budget<=0||!['single','joint'].includes(s.status))return false;
-  for(const key of ['shifts','supplies','expenses','goals','weeks','contributions','investments','balanceHistory','dealItems','dealPrices','dealReads','savingOffers','connectedOffers','celebrated']){
+  for(const key of ['shifts','schedule','scheduleAdjust','scheduleDone','supplies','expenses','goals','weeks','contributions','investments','balanceHistory','dealItems','dealPrices','dealReads','savingOffers','connectedOffers','celebrated']){
    const list=data[key]??[];if(!Array.isArray(list)||list.length>25000||new Set(list.map(x=>x?.id)).size!==list.length)return false;
    if(list.some(x=>!x||!txt(x.id,key==='connectedOffers'?201:100)||!x.id))return false;
   }
   if(data.shifts.some(x=>!Number.isFinite(Date.parse(x.start))||!Number.isFinite(Date.parse(x.end))||Date.parse(x.end)<=Date.parse(x.start)||!n(x.break)||x.break>=(Date.parse(x.end)-Date.parse(x.start))/60000))return false;
+  const clock=v=>typeof v==='string'&&/^([01]\d|2[0-3]):[0-5]\d$/.test(v),mins=v=>+v.slice(0,2)*60+ +v.slice(3),isDay=v=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v);
+  if((data.schedule||[]).some(x=>!Number.isInteger(x.day)||x.day<0||x.day>6||!clock(x.start)||!clock(x.end)||x.start===x.end||!Number.isInteger(x.break)||x.break<0||x.break>=(mins(x.end)-mins(x.start)+1440)%1440||!isDay(x.since)))return false;
+  if((data.scheduleAdjust||[]).some(x=>!txt(x.name,60)||!x.name.trim()||!isDay(x.from)||!isDay(x.to)||x.to<x.from||!Number.isInteger(x.startShift)||!Number.isInteger(x.endShift)||Math.abs(x.startShift)>720||Math.abs(x.endShift)>720))return false;
+  if((data.scheduleDone||[]).some(x=>!/^\d{4}-\d{2}-\d{2}:/.test(x.id)||!['worked','skipped'].includes(x.status)))return false;
   if(data.expenses.some(x=>!txt(x.name)||!txt(x.category)||!/^\d{4}-\d{2}-\d{2}$/.test(x.date)||!n(x.amount,.01)))return false;
   if(data.goals.some(x=>!txt(x.name)||!n(x.target,1)||!n(x.saved)|| (x.deadline&&!/^\d{4}-\d{2}-\d{2}$/.test(x.deadline))))return false;
   if((data.contributions||[]).some(x=>!txt(x.goalId,100)||!n(x.amount,.01)||!/^\d{4}-\d{2}-\d{2}$/.test(x.date)))return false;

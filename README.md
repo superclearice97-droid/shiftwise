@@ -19,6 +19,7 @@ The live app's access policy is separate from this repository. A public reposito
 
 ## Included
 
+- Usual weekly schedule with date-range changes (such as peak season), one-tap check-ins after each planned shift, and a weekly projection that includes planned hours.
 - Shift logging, weekly hours, configurable workweek start, overtime and estimated take-home pay.
 - Expense logging, daily itemized receipts, category summaries, budget comparisons, and locally generated spending suggestions.
 - Savings goals and weekly report cards.
