@@ -1,6 +1,6 @@
 # Shiftwise privacy and data notice
 
-Version 0.2.1 — October 12, 2026. This describes the current app code and known hosting dependencies, not an independently audited assurance. It covers the hosted website and the downloadable Android and Linux apps; the differences are described under “Downloadable apps”.
+Version 0.2.1 — October 12, 2026; website hosting section updated November 21, 2026. This describes the current app code and known hosting dependencies, not an independently audited assurance. It covers the hosted website and the downloadable Android and Linux apps; the differences are described under “Downloadable apps”.
 
 ## What you enter
 
@@ -26,7 +26,9 @@ The Android app (APK) and the Linux app (AppImage, zip, deb, pacman) work only o
 
 ## Other services (website)
 
-The existing deployment relies on Sites authentication and hosting and a Cloudflare-compatible Worker with D1 storage. Their own policies govern their handling of account and infrastructure information. The app sends requested public cryptocurrency symbols to its market quote provider through its server; it does not send vault holdings or balances to that provider. Following an external store, offer or documentation link subjects that visit to the destination's policies.
+The existing deployment relies on Sites authentication and hosting and a Cloudflare-compatible Worker with D1 storage. Their own policies govern their handling of account and infrastructure information.
+
+A copy you host yourself on Cloudflare (HOSTING.md) uses Cloudflare Workers and D1 for hosting and storage, and Cloudflare Access for sign-in. Cloudflare then processes your email address and one-time sign-in codes, your Access user ID (used as the account identifier), the encrypted vault, request metadata such as IP address and timing, and the transient store/AI request payloads described below. Cloudflare's own privacy policy and terms govern that processing. The vault passphrase and readable records are not sent to Cloudflare. The app sends requested public cryptocurrency symbols to its market quote provider through its server; it does not send vault holdings or balances to that provider. Following an external store, offer or documentation link subjects that visit to the destination's policies.
 
 There is no app-owned advertising tracker, session-replay SDK, marketing-email sender or paid subscription flow in this release. This statement does not characterize independent platform logging or future deployments.
 

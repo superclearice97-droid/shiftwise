@@ -1,0 +1,17 @@
+# Cloudflare deployment of the hosted website. Setup steps: HOSTING.md.
+# .github/workflows/deploy.yml fills in the database ID and the Access sign-in settings.
+name = "shiftwise"
+main = "dist/server/index.js"
+compatibility_date = "2026-10-01"
+workers_dev = true
+preview_urls = false
+
+[vars]
+# Every /api request must carry a valid Cloudflare Access sign-in token (see worker.js).
+AUTH = "cloudflare-access"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "shiftwise"
+database_id = "D1_DATABASE_ID"
+migrations_dir = "drizzle"

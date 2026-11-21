@@ -1,7 +1,37 @@
 const json=(body,status=200)=>Response.json(body,{status,headers:{'cache-control':'no-store'}});
 function db(env){if(!env.DB)throw Error('Database unavailable');return env.DB}
+/* Cloudflare Access sign-in (AUTH=cloudflare-access, set in wrangler.toml). Verifies the signed
+   Cf-Access-Jwt-Assertion token and replaces any client-supplied identity header with its subject,
+   so the endpoints below never trust an identity the browser sent. Fails closed when unconfigured. */
+const accessKeys=new Map();let accessKeysAt=0;
+const b64url=s=>Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')+'==='.slice((s.length+3)%4)),c=>c.charCodeAt(0));
+async function accessKey(team,kid){
+ if(!accessKeys.has(kid)&&Date.now()-accessKeysAt>60000||Date.now()-accessKeysAt>36e5){
+  const response=await fetch('https://'+team+'/cdn-cgi/access/certs',{redirect:'error'});if(!response.ok)throw Error('Access keys unavailable');
+  const keys=new Map();for(const jwk of (await response.json()).keys||[])if(jwk.kty==='RSA'&&typeof jwk.kid==='string')keys.set(jwk.kid,await crypto.subtle.importKey('jwk',{kty:'RSA',n:jwk.n,e:jwk.e,alg:'RS256',ext:true},{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['verify']));
+  accessKeys.clear();for(const [k,v] of keys)accessKeys.set(k,v);accessKeysAt=Date.now();
+ }
+ return accessKeys.get(kid);
+}
+async function accessUser(request,env){
+ const parts=(request.headers.get('cf-access-jwt-assertion')||'').split('.');if(parts.length!==3)return null;
+ let header,claims,signature;try{const text=x=>JSON.parse(new TextDecoder().decode(b64url(x)));header=text(parts[0]);claims=text(parts[1]);signature=b64url(parts[2])}catch{return null}
+ if(header?.alg!=='RS256'||typeof header.kid!=='string'||!claims||typeof claims!=='object')return null;
+ const key=await accessKey(env.ACCESS_TEAM_DOMAIN,header.kid);if(!key)return null;
+ if(!await crypto.subtle.verify('RSASSA-PKCS1-v1_5',key,signature,new TextEncoder().encode(parts[0]+'.'+parts[1])))return null;
+ const now=Date.now()/1000;
+ if(claims.iss!=='https://'+env.ACCESS_TEAM_DOMAIN||![].concat(claims.aud).includes(env.ACCESS_AUD)||!(claims.exp>now)||claims.nbf>now+60||typeof claims.sub!=='string'||!claims.sub)return null;
+ return claims.sub;
+}
+async function accessRequest(request,env){
+ if(!/^[a-z0-9-]+\.cloudflareaccess\.com$/.test(env.ACCESS_TEAM_DOMAIN||'')||!env.ACCESS_AUD)return json({error:'Sign-in is not configured on this server yet.'},503);
+ let user;try{user=await accessUser(request,env)}catch{return json({error:'Sign-in check is temporarily unavailable. Your changes stay on this device.'},503)}
+ const headers=new Headers(request.headers);headers.delete('oai-authenticated-user-id');if(user)headers.set('oai-authenticated-user-id',user);
+ return new Request(request,{headers});
+}
 export default {async fetch(request,env){
  const path=new URL(request.url).pathname;
+ if(env.AUTH==='cloudflare-access'&&path.startsWith('/api/')){const checked=await accessRequest(request,env);if(checked instanceof Response)return checked;request=checked}
  if(path==='/api/deals')return dealResponse(request,env);
  if(path==='/api/markets')return marketResponse(request);
  if(path==='/api/state'){
@@ -31,5 +61,5 @@ export default {async fetch(request,env){
  }
  const key=path==='/'?'/index.html':path,asset=ASSETS[key];if(!asset)return new Response('Not found',{status:404});
  const body=asset.binary?Uint8Array.from(atob(asset.body),c=>c.charCodeAt(0)):asset.body;
- return new Response(body,{headers:{'content-type':asset.type,'cache-control':'no-cache','x-content-type-options':'nosniff','referrer-policy':'no-referrer','strict-transport-security':'max-age=31536000','content-security-policy':"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'self' https://chatgpt.com https://*.chatgpt.com",'permissions-policy':'camera=(), microphone=(), geolocation=()',...(path==='/sw.js'?{'service-worker-allowed':'/'}:{})}});
+ return new Response(body,{headers:{'content-type':asset.type,'cache-control':'no-cache','x-content-type-options':'nosniff','referrer-policy':'no-referrer','strict-transport-security':'max-age=31536000','content-security-policy':"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors "+(env.AUTH==='cloudflare-access'?"'self'":"'self' https://chatgpt.com https://*.chatgpt.com"),'permissions-policy':'camera=(), microphone=(), geolocation=()',...(path==='/sw.js'?{'service-worker-allowed':'/'}:{})}});
 }};

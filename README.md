@@ -63,11 +63,13 @@ Add these repository secrets (Settings → Secrets and variables → Actions) so
 
 This repository is a source-code transfer, not a hosting or database migration. GitHub commits do not automatically deploy to the current live app.
 
+**Your own Cloudflare copy (iPhone).** [HOSTING.md](HOSTING.md) sets the Worker up on your own free Cloudflare account, behind Cloudflare Access, and adds it to an iPhone Home Screen. `wrangler.toml` sets `AUTH=cloudflare-access`. In that mode the Worker verifies the signed `Cf-Access-Jwt-Assertion` token (RS256 signature, issuer, audience, expiry) on every `/api/` request and ignores any client-supplied identity header. It refuses data requests if the team domain or audience is missing. `.github/workflows/deploy.yml` deploys on each push to `main` once the repository's Cloudflare settings exist.
+
 The existing runtime is a Cloudflare-compatible Worker hosted through Sites, with a D1 database bound as `DB`. Its schema migration is `drizzle/0000_safe_hellcat.sql`. `.openai/hosting.json` retains the existing Sites project identity so future Sites updates target the correct project. It contains no access credential.
 
 **GitHub Pages cannot run the complete app.** Merely serving `public/` also does not provide account authentication or synchronization. There is no configured standalone local development server in this source snapshot.
 
-The current Worker trusts the `oai-authenticated-user-id` header supplied by the Sites authentication layer. Before hosting elsewhere, replace that assumption with verified server-side authentication and reject/strip client-supplied identity headers. Provision a database and apply the schema before enabling sync. Do not expose this Worker directly with its current trusted-header authentication assumption.
+Without `AUTH=cloudflare-access`, the Worker trusts the `oai-authenticated-user-id` header supplied by the Sites authentication layer. Before hosting elsewhere, replace that assumption with verified server-side authentication and reject/strip client-supplied identity headers. Provision a database and apply the schema before enabling sync. Do not expose this Worker directly with its current trusted-header authentication assumption.
 
 If the app's domain changes, browser offline data does not automatically move between origins. Export an encrypted backup through the existing app and retain your vault passphrase before changing hosting. Identity-bound vaults also require a planned account migration; restoring across unrelated account IDs must not be assumed to work.
 

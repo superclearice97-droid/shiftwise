@@ -2,7 +2,7 @@
 
 ## What is protected
 
-After the user completes vault setup, account financial records, the device's offline state (including the merge baseline), and newly exported backups are encrypted in the browser. The server accepts only the versioned encrypted account envelope for writes. Authentication still comes from the private Sites access policy and platform-authenticated user headers.
+After the user completes vault setup, account financial records, the device's offline state (including the merge baseline), and newly exported backups are encrypted in the browser. The server accepts only the versioned encrypted account envelope for writes. Authentication still comes from the private Sites access policy and platform-authenticated user headers. On a Cloudflare deployment (HOSTING.md, `AUTH=cloudflare-access`), every `/api/` request needs a Cloudflare Access token. The Worker verifies its RS256 signature against the team's published keys, plus its issuer, audience, expiry and subject. Client-supplied identity headers are discarded, and data requests are refused when the sign-in settings are missing. Pages cannot be framed by other sites in that mode.
 
 AES-256-GCM is implemented with native Web Crypto, random 96-bit nonces per encryption, and 128-bit authentication tags. PBKDF2-HMAC-SHA-256 (600,000 iterations) derives a non-extractable key from the user's passphrase and a random 256-bit per-vault salt. Format/version, account ID, record purpose, algorithm, KDF parameters, and salt are authenticated as additional data. Account, device, and backup envelopes cannot be substituted for each other. Keys and passphrases are not persisted or sent to the server.
 
