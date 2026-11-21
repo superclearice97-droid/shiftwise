@@ -53,7 +53,7 @@ API reference: https://developers.openai.com/api/reference/resources/chat/subres
 
 ## Refresh and storage
 
-Keys, feed configuration, targets and fetched observations are stored in the existing encrypted vault, encrypted sync and encrypted backups. Removing a store deletes its key and cached feed, retaining saved history. Disable requests in AI & refresh settings to stop API access. AI replies are not persisted. After the first manual check, optional refresh runs every 15 minutes only while the app is visible, unlocked and no form is open. Closed/locked apps do not poll, and there are no push notifications. Alerts appear in the app after a refreshed exact product reaches its target or a new recorded low. Watch histories include API provenance and ZIP; they retain old observations when a provider is unavailable.
+Keys, feed configuration, targets and fetched observations are stored in the existing encrypted vault, encrypted sync and encrypted backups. Removing a store deletes its key and cached feed, retaining saved history. Disable requests in AI & refresh settings to stop API access. AI replies are not persisted. After the first manual check, optional refresh runs every 15 minutes only while the app is visible, unlocked and no form is open. Closed/locked apps do not poll, and price changes do not send push notifications. (Optional phone reminders exist only for shift check-ins; see PRIVACY.md.) Alerts appear in the app after a refreshed exact product reaches its target or a new recorded low. Watch histories include API provenance and ZIP; they retain old observations when a provider is unavailable.
 
 ## Hosted website
 

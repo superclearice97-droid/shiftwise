@@ -10,6 +10,10 @@ preview_urls = false
 # Every /api request must carry a valid Cloudflare Access sign-in token (see worker.js).
 AUTH = "cloudflare-access"
 
+# Sends due phone reminders every 5 minutes (push.js).
+[triggers]
+crons = ["*/5 * * * *"]
+
 [[d1_databases]]
 binding = "DB"
 database_name = "shiftwise"

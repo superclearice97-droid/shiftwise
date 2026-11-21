@@ -29,11 +29,12 @@ async function accessRequest(request,env){
  const headers=new Headers(request.headers);headers.delete('oai-authenticated-user-id');if(user)headers.set('oai-authenticated-user-id',user);
  return new Request(request,{headers});
 }
-export default {async fetch(request,env){
+export default {async scheduled(event,env,ctx){ctx.waitUntil(deliverPush(env).catch(()=>console.error('Push delivery failed')))},async fetch(request,env){
  const path=new URL(request.url).pathname;
  if(env.AUTH==='cloudflare-access'&&path.startsWith('/api/')){const checked=await accessRequest(request,env);if(checked instanceof Response)return checked;request=checked}
  if(path==='/api/deals')return dealResponse(request,env);
  if(path==='/api/markets')return marketResponse(request);
+ if(path==='/api/push')return pushResponse(request,env);
  if(path==='/api/state'){
   const user=request.headers.get('oai-authenticated-user-id');if(!user)return json({error:'Sign in required'},401);
   try{

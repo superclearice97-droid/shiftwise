@@ -32,6 +32,12 @@ A copy you host yourself on Cloudflare (HOSTING.md) uses Cloudflare Workers and 
 
 There is no app-owned advertising tracker, session-replay SDK, marketing-email sender or paid subscription flow in this release. This statement does not characterize independent platform logging or future deployments.
 
+## Phone reminders (website, optional)
+
+Off until you tap **Remind me after each shift** and allow notifications. Your phone then works out reminders for your planned shifts over the next three weeks and encrypts each reminder's text on the phone to that phone's own push subscription, using the standard Web Push encryption. The Shiftwise server stores your phone's push address (an Apple, Google, Mozilla or Microsoft URL), your Access user ID, the time each reminder is due and the encrypted text. It cannot read the text, but the due times reveal when your planned shifts end. At the due time the server sends the encrypted reminder to your phone's push service, for example Apple Push Notification service, which delivers it. That push service sees the size and timing of each reminder and that it comes from your Shiftwise site, under its own privacy terms. Reminder text can appear on your lock screen, depending on your phone's notification settings.
+
+Sent reminders are deleted from the server. So are reminders more than an hour overdue, the queued reminders for a phone you turn reminders off on, and the push address and reminders of a phone the push service reports as gone. Turn reminders off with **Turn off reminders** on the Work log, or in your phone's notification settings. The Android and Linux apps do not offer reminders.
+
 ## Retention and control
 
 You can edit/delete individual entries and export an encrypted backup. Individual deletion is synchronized as part of the encrypted record; it does not prove erasure from historical infrastructure backups or exported files. The release does not provide verified complete server-account deletion or a documented infrastructure retention schedule. These require an operator process before broader public onboarding.
@@ -50,4 +56,4 @@ The optional **AI deal watcher** is a separate opt-in in AI & refresh settings, 
 
 The **Deals in motion** animation is drawn on your device from records already in your vault and sends nothing. API providers may charge fees and apply their own retention policies.
 
-Downloaded apps connect directly through native transports. The website proxies approved provider requests, so its hosting service transiently handles API keys, search terms and AI context in plaintext; these request payloads are outside the vault encryption boundary. Shiftwise does not log or cache them, but independent infrastructure metadata policies still apply. Optional store polling runs only while visible and unlocked after a first manual check. No closed-app polling or push notifications are provided. See API-CONNECTIONS.md for setup, supported providers, removal and limitations.
+Downloaded apps connect directly through native transports. The website proxies approved provider requests, so its hosting service transiently handles API keys, search terms and AI context in plaintext; these request payloads are outside the vault encryption boundary. Shiftwise does not log or cache them, but independent infrastructure metadata policies still apply. Optional store polling runs only while visible and unlocked after a first manual check. No closed-app polling of store prices is provided, and price changes do not send push notifications. See API-CONNECTIONS.md for setup, supported providers, removal and limitations.

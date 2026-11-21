@@ -46,6 +46,12 @@ Open **Actions → Deploy website to Cloudflare → Run workflow** (it also runs
 
 iOS may delete a Home Screen app's stored data if you don't open it for a while. Your encrypted copy is also on the server, so you can unlock it again after signing in. Still export an encrypted backup now and then (**Pay settings → Export encrypted backup**).
 
+## 6. Shift reminders on your phone (optional)
+
+Needs iOS 16.4 or later and Shiftwise opened from the Home Screen. On the **Work log**, set your usual schedule, then tap **🔔 Remind me after each shift** and allow notifications. Tap **Send test** to check it works. About 10 minutes after each planned shift ends, you get a reminder like "Worked Mon 5:00 AM–2:30 PM? Tap to confirm." Tapping it opens the Work log. You still unlock your vault with your passphrase to confirm.
+
+The deploy workflow creates the signing key for notifications on its first run and stores it as a Cloudflare secret. You don't need to set anything up. Reminders go out within 5 minutes of their time. The phone uploads three weeks of reminders whenever it's unlocked, so open Shiftwise at least every few weeks. Read the phone-reminder section of PRIVACY.md for what the server and Apple can see.
+
 ## Limits and notes
 
 - **Existing records.** A new vault on this site starts empty. Records in the Android or Linux apps or on the old Sites website don't move over automatically, and encrypted backups from them can't be restored into a vault made with a different passphrase setup.

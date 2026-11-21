@@ -37,3 +37,10 @@ jobs:
           if [ -n "$TEAM" ] && [ -n "$AUD" ]; then args=(--var "ACCESS_TEAM_DOMAIN:$TEAM" --var "ACCESS_AUD:$AUD")
           else echo "::warning::Access sign-in is not configured yet; the app's data endpoints will refuse requests until it is (HOSTING.md step 4)."; fi
           npx --yes wrangler@4.158.0 deploy "${args[@]}"
+      - name: Create the phone-notification signing key (first deploy only)
+        # The key is generated here and piped straight into a Cloudflare secret; it is never printed or stored in GitHub.
+        run: |
+          secrets=$(npx --yes wrangler@4.158.0 secret list --format json) || { echo "::error::Could not list Worker secrets"; exit 1; }
+          if ! grep -q '"VAPID_PRIVATE_KEY"' <<<"$secrets"; then
+            node -e "crypto.subtle.generateKey({name:'ECDSA',namedCurve:'P-256'},true,['sign']).then(k=>crypto.subtle.exportKey('jwk',k.privateKey)).then(j=>process.stdout.write(JSON.stringify({kty:j.kty,crv:j.crv,d:j.d,x:j.x,y:j.y})))" | npx --yes wrangler@4.158.0 secret put VAPID_PRIVATE_KEY
+          fi

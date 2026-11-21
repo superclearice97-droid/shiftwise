@@ -37,6 +37,7 @@ function scheduleCard(){
  ${pending.length?`<ul class="checkins">${pending.map(o=>`<li><span>Worked ${label(o)}?</span><span class="actions"><button class="primary" data-plannedok="${esc(o.id)}">✓ Yes</button><button data-plannedadjust="${esc(o.id)}">Adjust</button><button data-plannedskip="${esc(o.id)}">Didn't work</button></span></li>`).join('')}</ul>`:''}
  <div class="insight">Selected week: ${p.logged.toFixed(1)} h logged${p.planned.length?` + ${p.extra.toFixed(1)} h scheduled, not yet confirmed`:''} ≈ ${p.total.toFixed(1)} h · estimated take-home ${money(calc(p.total).net)}.</div>
  ${changes.length?`<ul class="schedule-changes">${changes.map(a=>`<li>${esc(describeChange(a))} <button data-deladjust="${esc(a.id)}" aria-label="Remove schedule change">×</button></li>`).join('')}</ul>`:''}
+ <div id="pushControls" class="actions">${typeof pushControls==='function'?pushControls():''}</div>
  <div class="actions"><button id="editSchedule">Edit usual schedule</button><button id="addScheduleChange">＋ Date-range change (e.g. peak)</button></div></div>`;
 }
 function scheduleModal(){

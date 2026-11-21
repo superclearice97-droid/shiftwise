@@ -20,6 +20,7 @@ The live app's access policy is separate from this repository. A public reposito
 ## Included
 
 - Usual weekly schedule with date-range changes (such as peak season), one-tap check-ins after each planned shift, and a weekly projection that includes planned hours.
+- Optional phone reminders after each planned shift (hosted website on your own Cloudflare account). Reminder text is encrypted on the phone before upload (Web Push, RFC 8291).
 - Shift logging, weekly hours, configurable workweek start, overtime and estimated take-home pay.
 - Expense logging, daily itemized receipts, category summaries, budget comparisons, and locally generated spending suggestions.
 - Savings goals and weekly report cards.
