@@ -12,3 +12,7 @@ Full license texts that ship inside every version are in [`public/third-party-li
 - Coinbase is a trademark of its owner. Shiftwise is not affiliated with Coinbase.
 
 Original Shiftwise code has no open-source license grant. Copyright and other rights stay with their holders, and the third-party licenses above remain in effect.
+
+## Services used at run time (not bundled)
+
+- **Plaid Link** (optional bank connections on the self-hosted website) is loaded from `https://cdn.plaid.com` on `/bank.html` only, under Plaid's own terms. No Plaid code is included in this repository or the app packages.

@@ -14,6 +14,14 @@ If Play Protect shows a warning about an unknown app, tap **More details → Ins
 
 **Updating:** download the newer APK and install it the same way. Your records stay.
 
+## iPhone or iPad
+
+There's no App Store app. You add the Shiftwise website to your Home Screen instead. You first need your own copy of the website: follow [HOSTING.md](HOSTING.md) once (free Cloudflare account, about 20 minutes). Then:
+
+1. Open your Shiftwise address in **Safari** and sign in with the code emailed to you.
+2. Tap **Share → Add to Home Screen → Add**.
+3. Open Shiftwise from the Home Screen, sign in once more, and create or unlock your vault.
+
 ## Linux computer
 
 Choose one:

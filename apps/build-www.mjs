@@ -23,7 +23,7 @@ const csp = [
 let html = fs.readFileSync(path.join(src, 'index.html'), 'utf8');
 const replace = (from, to) => { if (!html.includes(from)) throw Error('index.html changed; update apps/build-www.mjs: ' + from); html = html.replace(from, to); };
 replace('<meta charset="utf-8">', `<meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="${csp}"><meta name="referrer" content="no-referrer">`);
-replace('<link rel="manifest" href="/manifest.webmanifest">', '');
+replace('<link rel="manifest" href="/manifest.webmanifest" crossorigin="use-credentials">', '');
 replace('<a class="install-shortcut" href="/install.html">Install app</a>', '');
 replace('<script src="vault.js"></script>', '<script src="device.js"></script><script src="vault.js"></script>');
 fs.writeFileSync(path.join(out, 'index.html'), html);
